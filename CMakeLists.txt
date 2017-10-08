@@ -8,6 +8,8 @@ endif()
 
 PROJECT(iroha C CXX)
 
+SET(CMAKE_CXX_FLAGS "-std=c++1y -Wall -fPIC")
+
 SET(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 SET(CMAKE_CXX_FLAGS "-std=c++1y -Wall")
 SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
@@ -86,7 +88,3 @@ if (FUZZING)
     message(Fuzzing with compilers other than clang does not supported yet)
   endif()
 endif()
-
-
-
-
