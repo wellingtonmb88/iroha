@@ -46,7 +46,10 @@ TEST(QuerySerializerTest, ClassHandlerTest) {
       std::make_shared<GetAccountAssets>(),
       std::make_shared<GetSignatories>(),
       std::make_shared<GetAccountAssetTransactions>(),
-      std::make_shared<GetAccountTransactions>()
+      std::make_shared<GetAccountTransactions>(),
+      std::make_shared<GetRoles>(),
+      std::make_shared<GetAssetInfo>(),
+      std::make_shared<GetRolePermissions>()
   };
   for (const auto &command : commands) {
     auto ser = factory.serialize(command);
