@@ -36,10 +36,10 @@ namespace iroha {
       RedisBlockQuery(cpp_redis::redis_client &client, FlatFile &file_store);
 
       rxcpp::observable<model::Transaction> getAccountTransactions(
-          const std::string &account_id) override;
+          const std::string &account_id);// override;
 
       rxcpp::observable<model::Transaction> getAccountAssetTransactions(
-          const std::string &account_id, const std::string &asset_id) override;
+          const std::string &account_id, const std::string &asset_id);// override;
 
       rxcpp::observable<boost::optional<model::Transaction>> getTransactions(
           const std::vector<iroha::hash256_t> &tx_hashes) override;
@@ -54,7 +54,7 @@ namespace iroha {
 
       rxcpp::observable<model::Block> getTopBlocks(uint32_t count) override;
 
-    private:
+     private:
       /**
        * Returns all blocks' ids containing given account id
        * @param account_id
@@ -79,7 +79,7 @@ namespace iroha {
        * @return
        */
       std::function<void(cpp_redis::reply &)> callbackToLrange(
-        const rxcpp::subscriber<model::Transaction> &s, uint64_t block_id);
+          const rxcpp::subscriber<model::Transaction> &s, uint64_t block_id);
 
       FlatFile &block_store_;
       cpp_redis::redis_client &client_;

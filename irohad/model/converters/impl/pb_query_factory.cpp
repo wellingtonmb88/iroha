@@ -203,14 +203,13 @@ namespace iroha {
       }
 
       protocol::Query PbQueryFactory::serializeGetAccountTransactions(
-        std::shared_ptr<const Query> query) const {
+          std::shared_ptr<const Query> query) const {
         protocol::Query pb_query;
         serializeQueryMetaData(pb_query, query);
         auto tmp =
-          std::dynamic_pointer_cast<const GetAccountTransactions>(
-            query);
-        auto pb_query_mut = pb_query.mutable_payload()
-          ->mutable_get_account_transactions();
+            std::static_pointer_cast<const GetAccountTransactions>(query);
+        auto pb_query_mut =
+            pb_query.mutable_payload()->mutable_get_account_transactions();
         pb_query_mut->set_account_id(tmp->account_id);
         auto pb_pager = pb_query_mut->mutable_pager();
         pb_pager->set_tx_hash(tmp->pager.tx_hash.to_hexstring());
@@ -219,17 +218,15 @@ namespace iroha {
       }
 
       protocol::Query PbQueryFactory::serializeGetAccountAssetTransactions(
-        std::shared_ptr<const Query> query) const {
+          std::shared_ptr<const Query> query) const {
         protocol::Query pb_query;
         serializeQueryMetaData(pb_query, query);
-        auto tmp = std::dynamic_pointer_cast<
-          const GetAccountAssetTransactions>(query);
-        assert(tmp);
+        auto tmp =
+            std::static_pointer_cast<const GetAccountAssetTransactions>(query);
         auto account_id = tmp->account_id;
         auto assets_id = tmp->assets_id;
-        auto pb_query_mut =
-          pb_query.mutable_payload()
-            ->mutable_get_account_asset_transactions();
+        auto pb_query_mut = pb_query.mutable_payload()
+                                ->mutable_get_account_asset_transactions();
         pb_query_mut->set_account_id(account_id);
         for (const auto &id : assets_id) {
           (*pb_query_mut->add_assets_id()) = id;

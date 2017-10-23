@@ -25,10 +25,10 @@
 namespace iroha {
   namespace ametsuchi {
     FlatFileBlockQuery::FlatFileBlockQuery(FlatFile &block_store)
-      : block_store_(block_store) {}
+        : block_store_(block_store) {}
 
     rxcpp::observable<model::Block> FlatFileBlockQuery::getBlocks(
-      uint32_t height, uint32_t count) {
+        uint32_t height, uint32_t count) {
       auto to = height + count;
       auto last_id = block_store_.last_id();
       if (to > last_id) {
@@ -45,7 +45,7 @@ namespace iroha {
             return;
           }
           auto document =
-            model::converters::stringToJson(bytesToString(bytes.value()));
+              model::converters::stringToJson(bytesToString(bytes.value()));
           if (not document.has_value()) {
             s.on_completed();
             return;
@@ -62,12 +62,12 @@ namespace iroha {
     }
 
     rxcpp::observable<model::Block> FlatFileBlockQuery::getBlocksFrom(
-      uint32_t height) {
+        uint32_t height) {
       return getBlocks(height, block_store_.last_id());
     }
 
     rxcpp::observable<model::Block> FlatFileBlockQuery::getTopBlocks(
-      uint32_t count) {
+        uint32_t count) {
       auto last_id = block_store_.last_id();
       if (count > last_id) {
         count = last_id;
@@ -77,7 +77,7 @@ namespace iroha {
 
     rxcpp::observable<model::Transaction>
     FlatFileBlockQuery::getAccountTransactions(
-      std::string account_id, model::Pager pager) {
+        std::string account_id, model::Pager pager) {
       std::deque<model::Transaction> reverser;
       getBlocksFrom(1)
         .flat_map([](auto block) {
@@ -99,7 +99,7 @@ namespace iroha {
 
     rxcpp::observable<model::Transaction>
     FlatFileBlockQuery::getAccountAssetTransactions(
-      std::string account_id, std::vector<std::string> assets_id,
+        std::string account_id, std::vector<std::string> assets_id,
       model::Pager pager) {
       using iroha::model::TransferAsset;
       using iroha::model::AddAssetQuantity;
@@ -151,6 +151,5 @@ namespace iroha {
         .subscribe([&](auto tx) { reverser.push_front(tx); });
       return rxcpp::observable<>::iterate(reverser);
     }
-
   }  // namespace ametsuchi
 }  // namespace iroha

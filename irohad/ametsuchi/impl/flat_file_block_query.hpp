@@ -27,7 +27,7 @@
 namespace iroha {
   namespace ametsuchi {
     class FlatFileBlockQuery : public BlockQuery {
-    public:
+     public:
       explicit FlatFileBlockQuery(FlatFile &block_store);
 
       rxcpp::observable<model::Block> getBlocks(uint32_t height,
@@ -44,7 +44,7 @@ namespace iroha {
         std::string account_id, std::vector<std::string> assets_id,
         model::Pager pager) override;
 
-    protected:
+     protected:
       FlatFile &block_store_;
 
       model::converters::JsonBlockFactory serializer_;

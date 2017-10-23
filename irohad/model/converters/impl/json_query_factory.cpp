@@ -130,10 +130,8 @@ namespace iroha {
         };
 
         return make_optional_ptr<GetAccountAssetTransactions>()
-            | des.String(&GetAccountAssetTransactions::account_id,
-                         "account_id")
-            | des.Array(&GetAccountAssetTransactions::assets_id,
-                        "assets_id",
+            | des.String(&GetAccountAssetTransactions::account_id, "account_id")
+            | des.Array(&GetAccountAssetTransactions::assets_id, "assets_id",
                         des_assets_id)
             | des.Object(&GetAccountAssetTransactions::pager, "pager")
             | toQuery;
@@ -221,9 +219,7 @@ namespace iroha {
         auto &allocator = json_doc.GetAllocator();
         json_doc.AddMember("query_type", "GetAccountTransactions", allocator);
         auto get_account =
-          std::dynamic_pointer_cast<const GetAccountTransactions>(
-            query);
-        assert(get_account);
+            std::static_pointer_cast<const GetAccountTransactions>(query);
         json_doc.AddMember(
           "account_id", get_account->account_id, allocator);
         Value json_pager;
@@ -238,10 +234,10 @@ namespace iroha {
         auto &allocator = json_doc.GetAllocator();
         json_doc.AddMember("query_type", "GetAccountAssetTransactions",
                            allocator);
-        auto get_account_asset = std::dynamic_pointer_cast<
-          const GetAccountAssetTransactions>(query);
-        json_doc.AddMember(
-          "account_id", get_account_asset->account_id, allocator);
+        auto get_account_asset =
+            std::static_pointer_cast<const GetAccountAssetTransactions>(query);
+        json_doc.AddMember("account_id", get_account_asset->account_id,
+                           allocator);
         Value json_assets_id;
         json_assets_id.SetArray();
         for (const auto& id : get_account_asset->assets_id) {

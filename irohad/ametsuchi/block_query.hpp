@@ -32,7 +32,7 @@ namespace iroha {
      * Public interface for queries on blocks and transactions
      */
     class BlockQuery {
-    public:
+     public:
       virtual ~BlockQuery() = default;
       /**
        * Get all transactions of an account.
@@ -41,10 +41,10 @@ namespace iroha {
        * @return observable of Model Transaction
        */
       virtual rxcpp::observable<model::Transaction> getAccountTransactions(
-        const std::string& account_id, const model::Pager& pager) = 0;
+          const std::string& account_id, const model::Pager& pager) = 0;
 
       /**
-       * Get asset transactions of an account with pagination.
+       * Get asset transactions of an account.
        * @param account_id - account_id (accountName@domainName)
        * @param assets_id - list of asset_id (assetName#domainName)
        * @param pager - pager for transactions
