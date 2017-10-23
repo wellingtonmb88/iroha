@@ -32,6 +32,7 @@
 #include "common/byteutils.hpp"
 #include "model/block.hpp"
 #include "model/common.hpp"
+#include "model/queries/get_transactions.hpp"
 #include "model/signature.hpp"
 
 namespace iroha {
