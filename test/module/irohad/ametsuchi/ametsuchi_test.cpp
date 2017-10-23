@@ -38,6 +38,90 @@ using namespace iroha::ametsuchi;
 using namespace iroha::model;
 using namespace framework::test_subscriber;
 
+unsigned int SEED_ = 1337;
+const char LOWER_ALPHABET[] = "abcdefghijklmnopqrstuvwxyz";
+
+/**
+ * returns a number in a range [min, max)
+ */
+int64_t random_number(int64_t min, int64_t max) {
+  return min + (rand_r(&SEED_) % (max - min));
+}
+
+inline std::string random_string(size_t length,
+                                 std::string alphabet = LOWER_ALPHABET) {
+  assert(alphabet.size() > 0);
+  std::string s;
+  std::generate_n(std::back_inserter(s), length, [&alphabet]() {
+    size_t i = (size_t) random_number(0, alphabet.size());
+    return (char) alphabet[i];
+  });
+  return s;
+}
+
+inline iroha::model::Block make_block(
+  const std::vector<iroha::model::Transaction> &transactions,
+  uint64_t height,
+  const iroha::hash256_t &prev_hash) {
+  iroha::model::Block block;
+  block.created_ts = 0;
+  block.transactions = transactions;
+  block.height = height;
+  block.txs_number = static_cast<uint16_t>(block.transactions.size());
+  block.prev_hash = prev_hash;
+  block.hash = iroha::hash(block);
+  return block;
+}
+
+inline iroha::model::Transaction make_tx(
+  const std::string &creator,
+  const std::vector<std::shared_ptr<iroha::model::Command>> &commands = {
+    std::make_shared<iroha::model::CreateDomain>(random_string(20), "user")}) {
+  auto tx = iroha::model::Transaction{};
+  tx.creator_account_id = creator;
+  tx.commands = commands;
+  return tx;
+}
+
+static const auto NO_PAGER = iroha::model::Pager{iroha::hash256_t{}, 10000};
+
+namespace default_block {
+  static const auto DOMAIN_ID = std::string("domain");
+  static const auto DOMAIN_USER_DEFAULT_ROLE = "user";
+  static const auto ALICE_NAME = std::string("alice");
+  static const auto BOB_NAME = std::string("bob");
+  static const auto ALICE_ID = ALICE_NAME + "@" + DOMAIN_ID;
+  static const auto BOB_ID = BOB_NAME + "@" + DOMAIN_ID;
+  static const auto ASSET1_NAME = std::string("irh");
+  static const auto ASSET1_ID = ASSET1_NAME + "#" + DOMAIN_ID;
+  static const auto ASSET1_PREC = static_cast<uint8_t>(1);
+  static const auto ASSET2_name = std::string("moeka");
+  static const auto ASSET2_ID = ASSET2_name + "#" + DOMAIN_ID;
+  static const auto ASSET2_PREC = 2;
+
+  inline iroha::hash256_t insert_default_block(
+    std::shared_ptr<iroha::ametsuchi::StorageImpl> const &storage) {
+    auto tx = iroha::model::Transaction{};
+    tx.creator_account_id = "default@defaultdomain",
+      tx.commands = {
+        std::make_shared<iroha::model::CreateRole>(
+          DOMAIN_USER_DEFAULT_ROLE, iroha::model::all_perm_group),
+        std::make_shared<iroha::model::CreateDomain>(
+          DOMAIN_ID, DOMAIN_USER_DEFAULT_ROLE),
+        std::make_shared<iroha::model::CreateAccount>(
+          ALICE_NAME, DOMAIN_ID, iroha::pubkey_t{}),
+        std::make_shared<iroha::model::CreateAccount>(
+          BOB_NAME, DOMAIN_ID, iroha::pubkey_t{}),
+        std::make_shared<iroha::model::CreateAsset>(
+          ASSET1_NAME, DOMAIN_ID, ASSET1_PREC),
+        std::make_shared<iroha::model::CreateAsset>(
+          ASSET2_name, DOMAIN_ID, ASSET2_PREC)};
+    const auto block = make_block({tx}, 1, iroha::hash256_t{});
+    EXPECT_TRUE(storage->insertBlock(block));
+    return block.hash;
+  }
+}
+
 TEST_F(AmetsuchiTest, GetBlocksCompletedWhenCalled) {
   // Commit block => get block => observable completed
   auto storage =
