@@ -20,9 +20,31 @@
 
 #include <model/query.hpp>
 #include <string>
+#include <vector>
 
 namespace iroha {
   namespace model {
+
+    /**
+     * Pager for transactions queries
+     */
+    struct Pager {
+      /**
+       * Transaction hash which is starting point to fetch transactions.
+       * Empty tx_hash means fetching from the top most transaction.
+       */
+      iroha::hash256_t tx_hash{};
+
+      /**
+       * Number of max transactions to fetch transactinos.
+       */
+      uint16_t limit{};
+
+      bool operator==(Pager const& rhs) const {
+        return tx_hash == rhs.tx_hash and limit == rhs.limit;
+      }
+      bool operator!=(Pager const& rhs) const { return not(operator==(rhs)); }
+    };
 
     /**
      * Query for getting transactions of given asset of an account
@@ -34,19 +56,46 @@ namespace iroha {
       std::string account_id{};
 
       /**
-       * Asset identifier
+       * Asset identifiers
        */
-      std::string asset_id{};
+      std::vector<std::string> assets_id{};
+
+      /**
+       * Pager for transactions
+       */
+      Pager pager{};
+
+      using AssetsIdType = decltype(assets_id);
+
+      bool operator==(GetAccountAssetTransactions const& rhs) const {
+        return account_id == rhs.account_id and assets_id == rhs.assets_id
+               and pager == rhs.pager;
+      }
+      bool operator!=(GetAccountAssetTransactions const& rhs) const {
+        return not(operator==(rhs));
+      }
     };
 
     /**
-      * Query for getting transactions of account
-      */
+     * Query for getting transactions of account
+     */
     struct GetAccountTransactions : Query {
       /**
        * Account identifier
        */
       std::string account_id{};
+
+      /**
+       * Pager for transactions
+       */
+      Pager pager{};
+
+      bool operator==(GetAccountTransactions const& rhs) const {
+        return account_id == rhs.account_id and pager == rhs.pager;
+      }
+      bool operator!=(GetAccountTransactions const& rhs) const {
+        return not(operator==(rhs));
+      }
     };
   }  // namespace model
 }  // namespace iroha
