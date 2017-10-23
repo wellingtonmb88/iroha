@@ -42,7 +42,7 @@ namespace framework {
       template <typename K>
       friend class TestSubscriber;
 
-     public:
+    public:
       /**
        * Handler that called before providing value to target subscriber
        * @param next - new value
@@ -71,7 +71,7 @@ namespace framework {
        */
       virtual ~VerificationStrategy() = default;
 
-     protected:
+    protected:
       /**
        * validation function for invariant
        * @return true if invariant safe, otherwise false
@@ -90,7 +90,7 @@ namespace framework {
      */
     template <typename T>
     class TestSubscriber {
-     public:
+    public:
       /**
        * Constructor for wrapping observable for checking invariant
        * @param unwrapped_observable - object for wrapping
@@ -98,7 +98,7 @@ namespace framework {
        */
       TestSubscriber(rxcpp::observable<T> unwrapped_observable,
                      std::unique_ptr<VerificationStrategy<T>> strategy)
-          : unwrapped_(unwrapped_observable), strategy_(std::move(strategy)) {}
+        : unwrapped_(unwrapped_observable), strategy_(std::move(strategy)) {}
 
       /**
        * Method provide subscription
@@ -106,33 +106,33 @@ namespace framework {
        * @param subscriber - business logic subscriber
        */
       TestSubscriber<T> &subscribe(
-          std::function<void(T)> subscriber = [](T) {},
-          std::function<void(std::exception_ptr)> error =
-              [](std::exception_ptr) {},
-          std::function<void()> completed = []() {}) {
+        std::function<void(T)> subscriber = [](T) {},
+        std::function<void(std::exception_ptr)> error =
+        [](std::exception_ptr) {},
+        std::function<void()> completed = []() {}) {
         unwrapped_.subscribe(
-            [this, subscriber](T val) {
-              // verify before invariant
-              this->strategy_->on_next_before(val);
+          [this, subscriber](T val) {
+            // verify before invariant
+            this->strategy_->on_next_before(val);
 
-              // invoke subscriber
-              subscriber(val);
+            // invoke subscriber
+            subscriber(val);
 
-              // verify after invariant
-              this->strategy_->on_next_after(val);
-            },
-            [this, error](std::exception_ptr ep) {
-              // invoke subscriber
-              error(ep);
+            // verify after invariant
+            this->strategy_->on_next_after(val);
+          },
+          [this, error](std::exception_ptr ep) {
+            // invoke subscriber
+            error(ep);
 
-              this->strategy_->on_error(ep);
-            },
-            [this, completed]() {
-              // invoke subscriber
-              completed();
+            this->strategy_->on_error(ep);
+          },
+          [this, completed]() {
+            // invoke subscriber
+            completed();
 
-              this->strategy_->on_completed();
-            });
+            this->strategy_->on_completed();
+          });
 
         return *this;
       }
@@ -143,7 +143,7 @@ namespace framework {
        */
       bool validate() { return strategy_->validate(); }
 
-     private:
+    private:
       rxcpp::observable<T> unwrapped_;
       std::unique_ptr<VerificationStrategy<T>> strategy_;
     };
@@ -165,13 +165,13 @@ namespace framework {
      *   auto sub = make_test_subscriber<CallExact>(o, 1);
      */
     template <template <typename K> class S,
-              template <typename V, typename SO> class O, typename T,
-              typename SourceOperator, typename... Args>
+      template <typename V, typename SO> class O, typename T,
+      typename SourceOperator, typename... Args>
     TestSubscriber<T> make_test_subscriber(
-        O<T, SourceOperator> unwrapped_observable, Args &&... args) {
+      O<T, SourceOperator> unwrapped_observable, Args &&... args) {
       return TestSubscriber<T>(
-          unwrapped_observable,
-          std::make_unique<S<T>>(std::forward<Args>(args)...));
+        unwrapped_observable,
+        std::make_unique<S<T>>(std::forward<Args>(args)...));
     }
 
     /**
@@ -180,13 +180,13 @@ namespace framework {
      */
     template <typename T>
     class CallExact : public VerificationStrategy<T> {
-     public:
+    public:
       /**
        * @param expected_number_of_calls - number of calls
        * that required for call
        */
       explicit CallExact(uint64_t expected_number_of_calls)
-          : expected_number_of_calls_(expected_number_of_calls) {}
+        : expected_number_of_calls_(expected_number_of_calls) {}
 
       CallExact(CallExact<T> &&rhs) {
         number_of_calls_ = 0;
@@ -215,18 +215,18 @@ namespace framework {
 
       void on_next_after(T next) override { ++number_of_calls_; }
 
-     protected:
+    protected:
       bool validate() override {
         auto val = number_of_calls_ == expected_number_of_calls_;
         if (!val) {
           this->invalidate_reason_ =
-              "Expected calls: " + std::to_string(expected_number_of_calls_) +
-              ", but called " + std::to_string(number_of_calls_);
+            "Expected calls: " + std::to_string(expected_number_of_calls_) +
+            ", but called " + std::to_string(number_of_calls_);
         }
         return val;
       }
 
-     private:
+    private:
       uint64_t expected_number_of_calls_;
       uint64_t number_of_calls_ = 0;
     };
@@ -237,11 +237,11 @@ namespace framework {
      */
     template <typename T>
     class IsCompleted : public VerificationStrategy<T> {
-     public:
+    public:
       IsCompleted() = default;
 
       IsCompleted(IsCompleted<T> &&rhs)
-          : on_complete_called(rhs.on_complete_called) {
+        : on_complete_called(rhs.on_complete_called) {
         rhs.on_complete_called = false;
       }
 
@@ -259,17 +259,68 @@ namespace framework {
         on_complete_called = true;
       }
 
-     protected:
+    protected:
       bool validate() override {
         if (not on_complete_called) {
           this->invalidate_reason_ =
-              "on_completed expected to be called once, but never called";
+            "on_completed expected to be called once, but never called";
         }
         return on_complete_called;
       }
 
-     private:
+    private:
       bool on_complete_called = false;
+    };
+
+    /**
+     * EqualToList checks subscribed values equals to vector<T>
+     * @tparam T - observable parameter
+     */
+    template <typename T>
+    class EqualToList : public VerificationStrategy<T> {
+    public:
+      /**
+       * @param expected_values - expected vector<T> values
+       * equals to list from observable
+       */
+      EqualToList(std::vector<T> expected_values)
+        : expected_values_(std::move(expected_values)) {}
+
+      EqualToList(EqualToList<T> &&rhs) {
+        std::swap(expected_values_, rhs.expected_values_);
+        std::swap(actual_values_, rhs.actual_values_);
+      }
+
+      EqualToList<T> &operator=(EqualToList<T> &&rhs) {
+        expected_values_.clear();
+        actual_values_.clear();
+        std::swap(expected_values_, rhs.expected_values_);
+        std::swap(actual_values_, rhs.actual_values_);
+        return *this;
+      }
+
+      /**
+       * Remove copy operator=
+       */
+      EqualToList<T> &operator=(EqualToList<T> &rhs) = delete;
+
+      /**
+       * Remove copy constructor
+       */
+      EqualToList(const EqualToList<T> &rhs) = delete;
+
+      void on_next_after(T next) override {
+        actual_values_.push_back(next);
+      }
+
+    protected:
+      bool validate() override {
+        return expected_values_ == actual_values_;
+      }
+
+    private:
+      std::vector<T> expected_values_;
+      std::vector<T> actual_values_;
     };
 
   }  // namespace test_subscriber
