@@ -54,7 +54,7 @@ namespace iroha {
 
       rxcpp::observable<model::Block> getTopBlocks(uint32_t count) override;
 
-     private:
+    private:
       /**
        * Returns all blocks' ids containing given account id
        * @param account_id
@@ -79,7 +79,7 @@ namespace iroha {
        * @return
        */
       std::function<void(cpp_redis::reply &)> callbackToLrange(
-          const rxcpp::subscriber<model::Transaction> &s, uint64_t block_id);
+        const rxcpp::subscriber<model::Transaction> &s, uint64_t block_id);
 
       FlatFile &block_store_;
       cpp_redis::redis_client &client_;
