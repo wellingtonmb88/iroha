@@ -283,19 +283,25 @@ namespace framework {
        * @param expected_values - expected vector<T> values
        * equals to list from observable
        */
-      EqualToList(std::vector<T> expected_values)
+      EqualToList(std::vector<T> expected_values) noexcept
         : expected_values_(std::move(expected_values)) {}
 
-      EqualToList(EqualToList<T> &&rhs) {
-        std::swap(expected_values_, rhs.expected_values_);
-        std::swap(actual_values_, rhs.actual_values_);
+      EqualToList(EqualToList<T> &&rhs) noexcept {
+        std::move(rhs.expected_values_.begin(),
+                  rhs.expected_values_.end(),
+                  std::back_inserter(expected_values_.begin()));
+        std::move(rhs.actual_values_.begin(),
+                  rhs.actual_values_.end(),
+                  std::back_inserter(actual_values_.begin()));
       }
 
-      EqualToList<T> &operator=(EqualToList<T> &&rhs) {
-        expected_values_.clear();
-        actual_values_.clear();
-        std::swap(expected_values_, rhs.expected_values_);
-        std::swap(actual_values_, rhs.actual_values_);
+      EqualToList<T> &operator=(EqualToList<T> &&rhs) noexcept {
+        std::move(rhs.expected_values_.begin(),
+                  rhs.expected_values_.end(),
+                  std::back_inserter(expected_values_.begin()));
+        std::move(rhs.actual_values_.begin(),
+                  rhs.actual_values_.end(),
+                  std::back_inserter(actual_values_.begin()));
         return *this;
       }
 

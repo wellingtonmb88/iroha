@@ -76,80 +76,83 @@ namespace iroha {
     }
 
     rxcpp::observable<model::Transaction>
-    FlatFileBlockQuery::getAccountTransactions(
-        std::string account_id, model::Pager pager) {
+    FlatFileBlockQuery::reverseObservable(
+        const rxcpp::observable<model::Transaction>& o) const {
       std::deque<model::Transaction> reverser;
-      getBlocksFrom(1)
-        .flat_map([](auto block) {
-          return rxcpp::observable<>::iterate(block.transactions);
-        })
-        .take_while([&](auto tx) { return iroha::hash(tx) != pager.tx_hash; })
-          // filter txs by specified creator after take_while until tx_hash
-          // to deal with other creator's tx_hash
-        .filter([account_id](auto tx) {
-          return tx.creator_account_id == account_id;
-        })
-          // size of retrievable blocks and transactions should be restricted
-          // in stateless validation.
-        .take_last(pager.limit)
-          // reverse transactions by pushing front of deque.
-        .subscribe([&](auto tx) { reverser.push_front(tx); });
+      o.subscribe([&reverser](auto tx) { reverser.push_front(tx); });
       return rxcpp::observable<>::iterate(reverser);
     }
 
     rxcpp::observable<model::Transaction>
+    FlatFileBlockQuery::getAccountTransactions(
+        const std::string& account_id, const model::Pager& pager) {
+      //TODO 06/11/17 motxx: Improve API for BlockQueries for on-demand fetching
+      return reverseObservable(
+        getBlocksFrom(1)
+            .flat_map([](auto block) {
+              return rxcpp::observable<>::iterate(block.transactions);
+            })
+            .take_while([&pager](auto tx) { return iroha::hash(tx) != pager.tx_hash; })
+            // filter txs by specified creator after take_while until tx_hash
+            // to deal with other creator's tx_hash
+            .filter([&account_id](auto tx) {
+              return tx.creator_account_id == account_id;
+            })
+            // size of retrievable blocks and transactions should be restricted
+            // in stateless validation.
+            .take_last(pager.limit));
+    }
+
+    bool FlatFileBlockQuery::hasAssetRelatedCommand(
+        const std::string& account_id,
+        const std::vector<std::string>& assets_id,
+        const std::shared_ptr<iroha::model::Command>& command) const {
+      return
+        searchCommand<model::TransferAsset>(
+        command, [&account_id, &assets_id](const auto& transfer){
+          return (transfer.src_account_id == account_id or
+            transfer.dest_account_id == account_id) and
+            std::any_of(
+              assets_id.begin(), assets_id.end(),
+              [&transfer](auto const &a) { return a == transfer.asset_id; });
+        })
+        or
+        searchCommand<model::AddAssetQuantity>(
+        command, [&account_id, &assets_id](const auto& add){
+          return add.account_id == account_id and
+            std::any_of(
+              assets_id.begin(), assets_id.end(),
+              [&add](auto const &a) { return a == add.asset_id; });
+        });
+    }
+
+    rxcpp::observable<model::Transaction>
     FlatFileBlockQuery::getAccountAssetTransactions(
-        std::string account_id, std::vector<std::string> assets_id,
-      model::Pager pager) {
-      using iroha::model::TransferAsset;
-      using iroha::model::AddAssetQuantity;
-
-      const auto check_command = [&](auto const& command) -> bool {
-        // TransferAsset
-        if (const auto transfer =
-          std::dynamic_pointer_cast<TransferAsset>(command)) {
-          return (transfer->src_account_id == account_id or
-                  transfer->dest_account_id == account_id) and
-                 // size of commands should be restricted
-                 // in stateless validation.
-                 std::any_of(assets_id.begin(), assets_id.end(),
-                             [&](auto const &a) {
-                               return a == transfer->asset_id;
-                             });
-        }
-
-        // AddAssetQuantity
-        if (const auto add =
-          std::dynamic_pointer_cast<AddAssetQuantity>(command)) {
-          return add->account_id == account_id and
-                 std::any_of(assets_id.begin(), assets_id.end(),
-                             [&](auto const &a) {
-                               return a == add->asset_id;
-                             });
-        }
-        return false;
-      };
-
-      std::deque<model::Transaction> reverser;
-      getBlocksFrom(1)
-        .flat_map([](auto block) {
-          return rxcpp::observable<>::iterate(block.transactions);
-        })
-          // local variables can be captured because this observable will be
-          // subscribed in this function.
-        .take_while([&](auto const &tx) {
-          return iroha::hash(tx) != pager.tx_hash;
-        })
-        .filter([&](auto const &tx) {
-          return std::any_of(tx.commands.begin(),
-                             tx.commands.end(), check_command);
-        })
-          // size of retrievable blocks and transactions should be
-          // restricted in stateless validation.
-        .take_last(pager.limit)
-          // reverse transactions by pushing front of deque.
-        .subscribe([&](auto tx) { reverser.push_front(tx); });
-      return rxcpp::observable<>::iterate(reverser);
+        const std::string& account_id,
+        const std::vector<std::string>& assets_id,
+        const model::Pager& pager) {
+      //TODO 06/11/17 motxx: Improve API for BlockQueries for on-demand fetching
+      return reverseObservable(
+          getBlocksFrom(1)
+            .flat_map([](auto block) {
+              return rxcpp::observable<>::iterate(block.transactions);
+            })
+            // local variables can be captured because this observable will be
+            // subscribed in this function.
+            .take_while([&pager](auto tx) {
+              return iroha::hash(tx) != pager.tx_hash;
+            })
+            .filter([this, &account_id, &assets_id](auto tx) {
+              return std::any_of(
+                tx.commands.begin(), tx.commands.end(),
+                [this, &account_id, &assets_id](auto command){
+                  // This "this->" is required by gcc.
+                  return this->hasAssetRelatedCommand(account_id, assets_id, command);
+                });
+            })
+            // size of retrievable blocks and transactions should be
+            // restricted in stateless validation.
+            .take_last(pager.limit));
     }
   }  // namespace ametsuchi
 }  // namespace iroha

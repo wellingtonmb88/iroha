@@ -76,20 +76,32 @@ TEST(PbQueryFactoryTest, SerializeGetAccountAssets){
   ASSERT_EQ(iroha::hash(*res_query.value()), iroha::hash(*query));
 }
 
+/**
+ * @given generated GetAccountTransaction
+ * @when runQueryTest(), serialize and deserialize test
+ * @then validate success.
+ */
 TEST(PbQueryFactoryTest, SerializeGetAccountTransactions){
   PbQueryFactory queryFactory;
   QueryGenerator queryGenerator;
   auto query = queryGenerator.generateGetAccountTransactions(
     0, "123", 0, "test", Pager{iroha::hash256_t{}, 1});
-  runQueryTest(query);
+  ASSERT_TRUE(query.has_value());
+  runQueryTest(*query);
 }
 
+/**
+ * @given generated GetAccountAssetsTransactions
+ * @when runQueryTest(), serialize and deserialize test
+ * @then validate success.
+ */
 TEST(PbQueryFactoryTest, SerializeGetAccountAssetsTransactions) {
   PbQueryFactory queryFactory;
   QueryGenerator queryGenerator;
   auto query = queryGenerator.generateGetAccountAssetTransactions(
     0, "123", 0, "test", {"a", "b"}, Pager{iroha::hash256_t{}, 1});
-  runQueryTest(query);
+  ASSERT_TRUE(query.has_value());
+  runQueryTest(*query);
 }
 
 TEST(PbQueryFactoryTest, SerializeGetSignatories){

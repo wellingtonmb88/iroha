@@ -112,10 +112,10 @@ namespace iroha {
                      const std::vector<iroha::hash256_t> &tx_hashes));
       MOCK_METHOD2(getAccountTransactions,
                    rxcpp::observable<model::Transaction>(const std::string&,
-                                                         const model::Pager&));
+                     const model::Pager&));
       MOCK_METHOD3(getAccountAssetTransactions,
-                   rxcpp::observable<model::Transaction>(
-                     const std::string&, const std::vector<std::string>&, const emodel::Pager&));
+                   rxcpp::observable<model::Transaction>(const std::string&,
+                     const std::vector<std::string>&, const model::Pager&));
       MOCK_METHOD2(getBlocks,
                    rxcpp::observable<model::Block>(uint32_t, uint32_t));
       MOCK_METHOD1(getBlocksFrom, rxcpp::observable<model::Block>(uint32_t));
