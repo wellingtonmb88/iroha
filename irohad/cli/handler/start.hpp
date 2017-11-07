@@ -28,16 +28,11 @@ namespace iroha {
   namespace cli {
     namespace handler {
 
-      inline void start(const ametsuchi::config::Ametsuchi *am,
-                        const iroha::config::Cryptography *crypto,
-                        const iroha::config::OtherOptions *other,
-                        const iroha::config::Peer *peer,
-                        const torii::config::Torii *torii) {
-        BOOST_ASSERT_MSG(am, "ametsuchi config is nullptr");
-        BOOST_ASSERT_MSG(crypto, "crypto config is nullptr");
-        BOOST_ASSERT_MSG(other, "other config is nullptr");
-        BOOST_ASSERT_MSG(torii, "torii config is nullptr");
-
+      inline void start(const ametsuchi::config::Ametsuchi &am,
+                        const iroha::config::Cryptography &crypto,
+                        const iroha::config::OtherOptions &other,
+                        const iroha::config::Peer &peer,
+                        const torii::config::Torii &torii) {
         auto log = logger::log("irohad");
 
         iroha::keypair_t keypair;
@@ -45,8 +40,8 @@ namespace iroha {
         // since it will be rewritten later, no need in good code here
         {
           KeysManagerImpl km;
-          auto opt_keypair = km.loadKeys(crypto->public_key, crypto->private_key);
-          if(opt_keypair) {
+          auto opt_keypair = km.loadKeys(crypto.public_key, crypto.private_key);
+          if (opt_keypair) {
             keypair = *opt_keypair;
           } else {
             log->error("keypair can not be parsed");
@@ -55,7 +50,7 @@ namespace iroha {
         }
 
         try {
-          Application irohad(*am, *torii, *peer, *other, keypair);
+          Application irohad(am, torii, peer, other, keypair);
           irohad.init();
           irohad.run();
 

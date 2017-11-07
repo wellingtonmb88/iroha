@@ -24,8 +24,7 @@
 #include "util/filesystem.hpp"
 
 using namespace iroha;
-using std::literals::string_literals::operator""s;   // std::string
-using std::literals::chrono_literals::operator""ms;  // milliseconds
+using namespace std::literals::string_literals;
 
 // IROHA_VERSION should be defined at compile-time with -DIROHA_VERSION=abcd
 #ifdef IROHA_VERSION
@@ -60,17 +59,16 @@ int main(int argc, char *argv[]) {
                 },
                 "Current version"s);
 
-  addPeerFlags(&main, &peer, &torii, &crypto);
-  addPostgresFlags(&main, &ametsuchi.postgres);
-  addRedisFlags(&main, &ametsuchi.redis);
-  addBlockStorageFlags(&main, &ametsuchi.blockStorage);
-  addOtherOptionsFlags(&main, &other);
+  flag::addPeerFlags(&main, &peer, &torii, &crypto);
+  flag::addPostgresFlags(&main, &ametsuchi.postgres);
+  flag::addRedisFlags(&main, &ametsuchi.redis);
+  flag::addBlockStorageFlags(&main, &ametsuchi.blockStorage);
+  flag::addOtherOptionsFlags(&main, &other);
 
   // start
   auto start = main.add_subcommand("start"s, "Start iroha"s);
-  start->set_callback([&]() {
-    cli::handler::start(&ametsuchi, &crypto, &other, &peer, &torii);
-  });
+  start->set_callback(
+      [&]() { cli::handler::start(ametsuchi, crypto, other, peer, torii); });
 
   // ledger
   auto ledger =
@@ -79,7 +77,7 @@ int main(int argc, char *argv[]) {
   // ledger create
   auto ledger_create = ledger->add_subcommand(
       "create"s, "Create new network with given genesis block"s);
-  addCreateLedgerFlags(ledger_create, &genesis_path);
+  flag::addCreateLedgerFlags(ledger_create, &genesis_path);
   ledger_create->set_callback(
       [&]() { cli::handler::ledger::create(&ametsuchi, genesis_path); });
 
@@ -98,6 +96,7 @@ int main(int argc, char *argv[]) {
     cli::handler::config::config(&ametsuchi, &crypto, &other, &peer, &torii);
   });
 
+  // this macro parses config and executes according callback handler
   CLI11_PARSE(main, argc, argv);
 
   std::exit(EXIT_SUCCESS);

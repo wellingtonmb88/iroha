@@ -25,26 +25,26 @@
 namespace defaults {
   using std::literals::chrono_literals::operator""ms;  // milliseconds
 
-  constexpr auto LOCALHOST = "localhost";
-  constexpr auto ALLHOST = "0.0.0.0";
+  const std::string LOCALHOST = "localhost";
+  const std::string ALLHOST = "0.0.0.0";
 
-  constexpr auto postgresHost = LOCALHOST;
-  constexpr auto postgresPort = 6379;
+  const std::string postgresHost = LOCALHOST;
+  const uint16_t postgresPort = 6379;
 
-  constexpr auto peerHost = LOCALHOST;
-  constexpr auto peerPort = 11111;
+  const std::string peerHost = LOCALHOST;
+  const uint16_t peerPort = 11111;
 
-  constexpr auto redisHost = LOCALHOST;
-  constexpr auto redisPort = 5432;
+  const std::string redisHost = LOCALHOST;
+  const uint16_t redisPort = 5432;
 
-  constexpr auto blockStoragePath = "blocks";
+  const std::string blockStoragePath = "blocks";
 
-  constexpr auto toriiHost = LOCALHOST;
-  constexpr auto toriiPort = 50051;
+  const std::string toriiHost = LOCALHOST;
+  const uint16_t toriiPort = 50051;
 
-  constexpr auto loadDelay = 5000ms;
-  constexpr auto voteDelay = 5000ms;
-  constexpr auto proposalDelay = 5000ms;
-  constexpr auto proposalSize = 10;
+  const auto loadDelay = 5000ms;
+  const auto voteDelay = 5000ms;
+  const auto proposalDelay = 5000ms;
+  const size_t proposalSize = 10;
 }
 #endif  //  IROHA_CLI_DEFAULTS_HPP_

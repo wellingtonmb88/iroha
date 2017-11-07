@@ -40,14 +40,14 @@ namespace iroha {
           auto genesis_content = filesystem::read_file(genesis_path);
           if(not genesis_content){
             log->error("Failed to read genesis block");
-            exit(EXIT_FAILURE);
+            std::exit(EXIT_FAILURE);
           }
 
           iroha::main::BlockInserter inserter(storage);
           auto block = inserter.parseBlock(genesis_content.value());
           if (not block) {
             log->error("Failed to parse genesis block");
-            exit(EXIT_FAILURE);
+            std::exit(EXIT_FAILURE);
           }
 
           // TODO(@warchant): what if create was called twice?

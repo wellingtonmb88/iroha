@@ -79,13 +79,7 @@ class TxPipelineIntegrationTest : public iroha::ametsuchi::AmetsuchiTest {
   config::Peer peer{};
   config::OtherOptions other{};
 
-  std::string addr;
-
   void SetUp() override {
-    std::stringstream ss;
-    ss << LOCALHOST << ":" << defaults::peerPort;
-    addr = ss.str();
-
     iroha::ametsuchi::AmetsuchiTest::SetUp();
 
     {
@@ -106,7 +100,8 @@ class TxPipelineIntegrationTest : public iroha::ametsuchi::AmetsuchiTest {
     }
 
     genesis_block =
-        iroha::model::generators::BlockGenerator().generateGenesisBlock({addr});
+        iroha::model::generators::BlockGenerator().generateGenesisBlock(
+            {peer.listenAddress()});
     manager = std::make_shared<iroha::KeysManagerImpl>("node0");
     auto keypair = manager->loadKeys().value();
 
