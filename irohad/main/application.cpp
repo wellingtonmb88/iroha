@@ -180,7 +180,7 @@ void Application::initConsensusGate() {
   PRECONDITION_TRUE(simulator);
   PRECONDITION_TRUE(block_loader);
 
-  consensus_gate = yac_init.initConsensusGate(torii_.listenAddress(),
+  consensus_gate = yac_init.initConsensusGate(peer_.listenAddress(),
                                               wsv,
                                               simulator,
                                               block_loader,
@@ -271,7 +271,7 @@ void Application::run() {
   POSTCONDITION_TRUE(torii_server);
 
   grpc::ServerBuilder builder;
-  int port;
+  int port = 0;
   builder.AddListeningPort(
       peer_.listenAddress(), grpc::InsecureServerCredentials(), &port);
 
