@@ -28,7 +28,7 @@
 #include "logger/logger.hpp"
 #include "util/string.hpp"
 
-using std::literals::string_literals::operator""s;
+using namespace std::literals::string_literals;
 using iroha::string::parse_env;
 
 #define LOCALHOST "127.0.0.1"s

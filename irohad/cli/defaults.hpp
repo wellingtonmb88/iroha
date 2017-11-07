@@ -19,32 +19,33 @@
 #define IROHA_CLI_DEFAULTS_HPP_
 
 #include <chrono>
+#include <cstdint>
 #include "ametsuchi/config.hpp"
 #include "cli/env-vars.hpp"
 
 namespace defaults {
-  using std::literals::chrono_literals::operator""ms;  // milliseconds
+  using namespace std::literals::chrono_literals;
 
   const std::string LOCALHOST = "localhost";
   const std::string ALLHOST = "0.0.0.0";
 
   const std::string postgresHost = LOCALHOST;
-  const uint16_t postgresPort = 6379;
+  const std::uint16_t postgresPort = 6379;
 
   const std::string peerHost = LOCALHOST;
-  const uint16_t peerPort = 11111;
+  const std::uint16_t peerPort = 11111;
 
   const std::string redisHost = LOCALHOST;
-  const uint16_t redisPort = 5432;
+  const std::uint16_t redisPort = 5432;
 
   const std::string blockStoragePath = "blocks";
 
   const std::string toriiHost = LOCALHOST;
-  const uint16_t toriiPort = 50051;
+  const std::uint16_t toriiPort = 50051;
 
   const auto loadDelay = 5000ms;
   const auto voteDelay = 5000ms;
   const auto proposalDelay = 5000ms;
-  const size_t proposalSize = 10;
+  const std::size_t proposalSize = 10;
 }
 #endif  //  IROHA_CLI_DEFAULTS_HPP_

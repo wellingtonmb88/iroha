@@ -28,7 +28,7 @@
 
 namespace flag {
 
-  using std::literals::string_literals::operator""s;
+  using namespace std::literals::string_literals;
 
   enum { IROHA_PORT_MIN = 1, IROHA_PORT_MAX = 65535 };
   enum { IROHA_DELAY_MIN = 1, IROHA_DELAY_MAX = 100000 };
