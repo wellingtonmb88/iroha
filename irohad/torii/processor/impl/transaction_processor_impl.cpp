@@ -15,24 +15,28 @@
  * limitations under the License.
  */
 
-#include <crypto/hash.hpp>
-#include <endpoint.pb.h>
 #include <iostream>
-#include <model/transaction_response.hpp>
-#include <torii/processor/transaction_processor_impl.hpp>
 #include <utility>
+
+#include "crypto/hash.hpp"
+#include "endpoint.pb.h"
+#include "model/transaction_response.hpp"
+#include "torii/processor/transaction_processor_impl.hpp"
 
 namespace iroha {
   namespace torii {
 
-    using validation::StatelessValidator;
     using model::TransactionResponse;
     using network::PeerCommunicationService;
+    using validation::StatelessValidator;
 
     TransactionProcessorImpl::TransactionProcessorImpl(
         std::shared_ptr<PeerCommunicationService> pcs,
-        std::shared_ptr<StatelessValidator> validator)
-        : pcs_(std::move(pcs)), validator_(std::move(validator)) {
+        std::shared_ptr<StatelessValidator> validator,
+        std::shared_ptr<MstProcessor> mst_proc)
+        : pcs_(std::move(pcs)),
+          validator_(std::move(validator)),
+          mst_proc_(std::move(mst_proc)) {
       log_ = logger::log("TxProcessor");
 
       // insert all txs from proposal to proposal set
@@ -50,7 +54,7 @@ namespace iroha {
 
       // move commited txs from proposal to candidate map
       pcs_->on_commit().subscribe([this](
-          rxcpp::observable<model::Block> blocks) {
+                                      rxcpp::observable<model::Block> blocks) {
         blocks.subscribe(
             // on next..
             [this](model::Block block) {
@@ -104,9 +108,10 @@ namespace iroha {
             TransactionResponse::Status::STATELESS_VALIDATION_SUCCESS;
         pcs_->propagate_transaction(transaction);
       }
-      log_->info("stateless validation status: {}",
-                 response.current_status ==
-                     TransactionResponse::Status::STATELESS_VALIDATION_SUCCESS);
+      log_->info(
+          "stateless validation status: {}",
+          response.current_status
+              == TransactionResponse::Status::STATELESS_VALIDATION_SUCCESS);
       notifier_.get_subscriber().on_next(
           std::make_shared<model::TransactionResponse>(response));
     }

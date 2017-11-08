@@ -16,6 +16,7 @@
  */
 
 #include "module/irohad/network/network_mocks.hpp"
+#include "module/irohad/torii/torii_mocks.hpp"
 #include "module/irohad/validation/validation_mocks.hpp"
 
 #include "torii/processor/transaction_processor_impl.hpp"
@@ -29,9 +30,9 @@ using namespace iroha::torii;
 using namespace iroha::model;
 using namespace framework::test_subscriber;
 
+using ::testing::A;
 using ::testing::Return;
 using ::testing::_;
-using ::testing::A;
 
 class TransactionProcessorTest : public ::testing::Test {
  public:
@@ -39,6 +40,7 @@ class TransactionProcessorTest : public ::testing::Test {
   void SetUp() override {
     pcs = std::make_shared<MockPeerCommunicationService>();
     validation = std::make_shared<MockStatelessValidator>();
+    mp = std::make_shared<MockMstProcessorDummy>();
 
     rxcpp::subjects::subject<iroha::model::Proposal> prop_notifier;
     rxcpp::subjects::subject<Commit> commit_notifier;
@@ -51,12 +53,13 @@ class TransactionProcessorTest : public ::testing::Test {
                 on_commit())
         .WillRepeatedly(Return(commit_notifier.get_observable()));
 
-    tp = std::make_shared<TransactionProcessorImpl>(pcs, validation);
+    tp = std::make_shared<TransactionProcessorImpl>(pcs, validation, mp);
   }
 
   std::shared_ptr<MockPeerCommunicationService> pcs;
   std::shared_ptr<MockStatelessValidator> validation;
   std::shared_ptr<TransactionProcessorImpl> tp;
+  std::shared_ptr<MockMstProcessorDummy> mp;
 };
 
 /**
