@@ -39,6 +39,8 @@ namespace iroha {
             &PbQueryFactory::serializeGetAccountTransactions;
         serializers_[typeid(GetAccountAssetTransactions)] =
             &PbQueryFactory::serializeGetAccountAssetTransactions;
+        serializers_[typeid(GetAccountUncompletedTransactions)] =
+            &PbQueryFactory::serializeGetAccountUncompletedTransactions;
         serializers_[typeid(GetSignatories)] =
             &PbQueryFactory::serializeGetSignatories;
         serializers_[typeid(GetRolePermissions)] =
@@ -90,6 +92,12 @@ namespace iroha {
               val = std::make_shared<model::GetSignatories>(query);
               break;
             }
+            case Query_Payload::QueryCase::kGetAccountUncompletedTransactions: {
+              const auto &pb_cast = pl.get_account_uncompleted_transactions();
+              val = std::make_shared<model::GetAccountUncompletedTransactions>(
+                  pb_cast.account_id());
+              break;
+            }
             case Query_Payload::QueryCase::kGetAccountTransactions: {
               // Convert to get Signatories
               const auto &pb_cast = pl.get_account_transactions();
@@ -110,7 +118,7 @@ namespace iroha {
             }
             case Query_Payload::QueryCase::kGetRolePermissions: {
               const auto &pb_cast = pl.get_role_permissions();
-              val = std::make_shared <GetRolePermissions>(pb_cast.role_id());
+              val = std::make_shared<GetRolePermissions>(pb_cast.role_id());
               break;
             }
             default: {
@@ -188,6 +196,22 @@ namespace iroha {
         auto pb_query_mut =
             pb_query.mutable_payload()->mutable_get_account_transactions();
         pb_query_mut->set_account_id(tmp->account_id);
+        return pb_query;
+      }
+
+      protocol::Query
+      PbQueryFactory::serializeGetAccountUncompletedTransactions(
+          std::shared_ptr<const Query> query) const {
+        protocol::Query pb_query;
+        serializeQueryMetaData(pb_query, query);
+        auto tmp =
+            std::static_pointer_cast<const GetAccountUncompletedTransactions>(
+                query);
+        auto account_id = tmp->account_id;
+        auto pb_query_mut =
+            pb_query.mutable_payload()
+                ->mutable_get_account_uncompleted_transactions();
+        pb_query_mut->set_account_id(account_id);
         return pb_query;
       }
 

@@ -48,6 +48,18 @@ namespace iroha {
        */
       std::string account_id{};
     };
+
+    /**
+     * Get all uncompleted multi-signature transaction which require signature
+     * of account
+     */
+    struct GetAccountUncompletedTransactions : Query {
+      /// Account identifier who's signature is required
+      std::string account_id;
+
+      GetAccountUncompletedTransactions(std::string account_id)
+          : account_id(account_id) {}
+    };
   }  // namespace model
 }  // namespace iroha
 #endif  // IROHA_GET_TRANSACTIONS_HPP

@@ -61,6 +61,8 @@ namespace iroha {
             std::shared_ptr<const Query> query) const;
         protocol::Query serializeGetAccountAssetTransactions(
             std::shared_ptr<const Query> query) const;
+        protocol::Query serializeGetAccountUncompletedTransactions(
+            std::shared_ptr<const Query> query) const;
         protocol::Query serializeGetSignatories(
             std::shared_ptr<const Query> query) const;
         protocol::Query serializeGetAssetInfo(
