@@ -15,25 +15,19 @@
  * limitations under the License.
  */
 
+#include <gflags/gflags.h>
+#include <boost/filesystem.hpp>
 #include <fstream>
 #include <iostream>
 
-#include <gflags/gflags.h>
-#include <boost/filesystem.hpp>
-
 #include "client.hpp"
-#include "common/assert_config.hpp"
 #include "crypto/keys_manager_impl.hpp"
 #include "grpc_response_handler.hpp"
 #include "interactive/interactive_cli.hpp"
-#include "logger/logger.hpp"
 #include "model/converters/json_block_factory.hpp"
-#include "model/converters/json_common.hpp"
 #include "model/converters/json_query_factory.hpp"
 #include "model/generators/block_generator.hpp"
-#include "model/generators/signature_generator.hpp"
 #include "model/model_crypto_provider_impl.hpp"
-#include "responses.pb.h"
 #include "validators.hpp"
 
 DEFINE_string(config, "", "Trusted peer's ip addresses");
@@ -74,52 +68,8 @@ int main(int argc, char *argv[]) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
   gflags::ShutDownCommandLineFlags();
   auto logger = logger::log("CLI-MAIN");
-  if (FLAGS_new_account) {
-    // Create new pub/priv key
-    auto keysManager = iroha::KeysManagerImpl(FLAGS_name);
-    if (not keysManager.createKeys(FLAGS_pass_phrase)) {
-      logger->error("Keys already exist");
-    } else {
-      logger->info(
-          "Public and private key has been generated in current directory");
-    };
-  } else if (FLAGS_grpc) {
-    iroha_cli::CliClient client(FLAGS_address, FLAGS_torii_port);
-    iroha_cli::GrpcResponseHandler response_handler;
-    if (not FLAGS_json_transaction.empty()) {
-      logger->info(
-          "Send transaction to {}:{} ", FLAGS_address, FLAGS_torii_port);
-      // Read from file
-      std::ifstream file(FLAGS_json_transaction);
-      std::string str((std::istreambuf_iterator<char>(file)),
-                      std::istreambuf_iterator<char>());
-      iroha::model::converters::JsonTransactionFactory serializer;
-      auto doc = iroha::model::converters::stringToJson(str);
-      if (not doc.has_value()) {
-        logger->error("Json has wrong format.");
-      }
-      auto tx_opt = serializer.deserialize(doc.value());
-      if (not tx_opt.has_value()) {
-        logger->error("Json transaction has wrong format.");
-      } else {
-        response_handler.handle(client.sendTx(tx_opt.value()));
-      }
-    }
-    if (not FLAGS_json_query.empty()) {
-      logger->info("Send query to {}:{}", FLAGS_address, FLAGS_torii_port);
-      std::ifstream file(FLAGS_json_query);
-      std::string str((std::istreambuf_iterator<char>(file)),
-                      std::istreambuf_iterator<char>());
-      iroha::model::converters::JsonQueryFactory serializer;
-      auto query_opt = serializer.deserialize(std::move(str));
-      if (not query_opt.has_value()) {
-        logger->error("Json has wrong format.");
-      } else {
-        response_handler.handle(client.sendQuery(query_opt.value()));
-      }
-    }
-
-  } else if (FLAGS_genesis_block) {
+  // ---- Generate genesis block for new Iroha Network ----
+  if (FLAGS_genesis_block) {
     BlockGenerator generator;
 
     if (FLAGS_peers_address.empty()) {
@@ -141,37 +91,102 @@ int main(int argc, char *argv[]) {
     std::ofstream output_file("genesis.block");
     output_file << jsonToString(doc);
     logger->info("File saved to genesis.block");
-  } else if (FLAGS_interactive) {
-    if (FLAGS_name.empty()) {
-      logger->error("Specify account name");
-      return -1;
-    }
-
-    fs::path path(FLAGS_key_path);
-    if (not fs::exists(path)) {
-      logger->error("Path {} does not exist", path.string());
-      return EXIT_FAILURE;
-    }
-    iroha::KeysManagerImpl manager((path / FLAGS_name).string());
-    auto keypair = manager.loadKeys();
-    if (not keypair.has_value()) {
-      logger->error(
-          "Cannot load specified keypair, or keypair is invalid. Path: {}, "
-          "keypair name: {}",
-          path.string(),
-          FLAGS_name);
-      return EXIT_FAILURE;
-    }
-    // TODO 13/09/17 grimadas: Init counters from Iroha, or read from disk? IR-334
-    InteractiveCli interactiveCli(
-        FLAGS_name,
-        0,
-        0,
-        std::make_shared<iroha::model::ModelCryptoProviderImpl>(
-            keypair.value()));
-    interactiveCli.run();
-  } else {
-    assert_config::assert_fatal(false, "Invalid flags");
+  }  // ---- Create new account in Iroha system ----
+  else if (FLAGS_new_account) {
+    // Create new pub/priv key
+    // TODO: check with the Iroha system that such account is unique?
+    auto keysManager = iroha::KeysManagerImpl(FLAGS_name);
+    if (not keysManager.createKeys(FLAGS_pass_phrase)) {
+      logger->error("Keys already exist");
+    } else {
+      logger->info(
+          "Public and private key has been generated in current directory");
+    };
   }
-  return 0;
+  // --- Iroha Peer - Client interaction  ----
+  else if (not FLAGS_address.empty() and FLAGS_torii_port > 0) {
+    iroha_cli::CliClient client(FLAGS_address, FLAGS_torii_port);
+    iroha_cli::GrpcResponseHandler response_handler;
+    // --- Case 1. Send transaction in json format ----
+    if (not FLAGS_json_transaction.empty()) {
+      logger->info(
+          "Send transaction to {}:{} ", FLAGS_address, FLAGS_torii_port);
+      // Read from file
+      std::ifstream file(FLAGS_json_transaction);
+      std::string str((std::istreambuf_iterator<char>(file)),
+                      std::istreambuf_iterator<char>());
+      iroha::model::converters::JsonTransactionFactory serializer;
+      auto doc = iroha::model::converters::stringToJson(str);
+      if (not doc.has_value()) {
+        logger->error("Json has wrong format.");
+      }
+      auto tx_opt = serializer.deserialize(doc.value());
+      // TODO: Add specific reason why json is wrong
+      if (not tx_opt.has_value()) {
+        logger->error("Json transaction has wrong format.");
+      } else {
+        response_handler.handle(client.sendTx(tx_opt.value()));
+      }
+    }
+    // --- Case 2. Send query in json format ---
+    else if (not FLAGS_json_query.empty()) {
+      logger->info("Send query to {}:{}", FLAGS_address, FLAGS_torii_port);
+      std::ifstream file(FLAGS_json_query);
+      std::string str((std::istreambuf_iterator<char>(file)),
+                      std::istreambuf_iterator<char>());
+      iroha::model::converters::JsonQueryFactory serializer;
+      auto query_opt = serializer.deserialize(str);
+      if (not query_opt.has_value()) {
+        // TODO: Add specific reason why json is wrong
+        logger->error("Json has wrong format.");
+      } else {
+        response_handler.handle(client.sendQuery(query_opt.value()));
+      }
+    }
+    // --- Case 3. Run interactive mode ---
+    else if (FLAGS_interactive) {
+      if (FLAGS_name.empty()) {
+        logger->error("Specify your account name");
+        return EXIT_FAILURE;
+      }
+      if (FLAGS_key_path.empty()) {
+        logger->error("Specify path to keys");
+        return EXIT_FAILURE;
+      }
+      // Fetch keys from key_path
+      fs::path path(FLAGS_key_path);
+      if (not fs::exists(path)) {
+        logger->error("Path {} does not exist", path.string());
+        return EXIT_FAILURE;
+      }
+      // Check if keys are associated with account
+      iroha::KeysManagerImpl manager((path / FLAGS_name).string());
+      auto keypair = manager.loadKeys();
+      if (not keypair.has_value()) {
+        logger->error(
+            "Cannot load specified keypair, or keypair is invalid. Path: {}, "
+            "keypair name: {}",
+            path.string(),
+            FLAGS_name);
+        return EXIT_FAILURE;
+      }
+      // TODO 13/09/17 grimadas: Init counters from Iroha, or read from disk?
+      // IR-334
+      InteractiveCli interactiveCli(
+          FLAGS_name,
+          0,
+          0,
+          client,
+          std::make_shared<iroha::model::ModelCryptoProviderImpl>(
+              keypair.value()));
+      interactiveCli.run();
+    } else {
+      logger->error(
+          "Specify flags: json_transaction, json_query or interactive");
+      return EXIT_FAILURE;
+    }
+  } else {
+    logger->error("Specify run flags");
+    return EXIT_FAILURE;
+  }
 }

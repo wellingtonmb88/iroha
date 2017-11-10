@@ -74,7 +74,7 @@ namespace iroha_cli {
 
     std::string promtString(const std::string &message) {
       std::string line;
-      std::cout << message << ": ";
+      std::cout << message;
       std::getline(std::cin, line);
       return line;
     }
