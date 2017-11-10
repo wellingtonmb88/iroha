@@ -43,22 +43,7 @@ namespace iroha {
   using BadFormatException = std::invalid_argument;
   using byte_t = uint8_t;
 
-  static const std::string code = {'0',
-                                   '1',
-                                   '2',
-                                   '3',
-                                   '4',
-                                   '5',
-                                   '6',
-                                   '7',
-                                   '8',
-                                   '9',
-                                   'a',
-                                   'b',
-                                   'c',
-                                   'd',
-                                   'e',
-                                   'f'};
+  static const std::string code = "0123456789abcdef";
 
   /**
    * Base type which represents blob of fixed size.

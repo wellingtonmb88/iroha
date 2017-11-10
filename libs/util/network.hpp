@@ -41,7 +41,7 @@ namespace iroha {
      * @return true if given string looks like a domain name or ip.
      */
     inline bool is_host_valid(const std::string &host) {
-      return !host.empty() and host.size() <= 253 /* max size is 253 for domains */;
+      return not host.empty() and host.size() <= 253 /* max size is 253 for domains */;
     }
 
   } //   namespace network

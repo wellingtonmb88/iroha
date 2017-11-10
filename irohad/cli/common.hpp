@@ -21,6 +21,7 @@
 #include <chrono>
 #include <sstream>
 #include <string>
+#include <utility>
 #include "cli/defaults.hpp"
 
 namespace iroha {
@@ -31,8 +32,8 @@ namespace iroha {
      * @brief Network service.
      */
     struct Service {
-      std::string host;
-      uint16_t port;
+      std::string host{};
+      uint16_t port{};
 
       std::string listenAddress() const noexcept {
         return this->host + ":" + std::to_string(this->port);
@@ -44,8 +45,8 @@ namespace iroha {
      * @brief Network service with authentication.
      */
     struct AuthService : public Service {
-      std::string username;
-      std::string password;
+      std::string username{};
+      std::string password{};
     };
 
     /**
@@ -53,8 +54,8 @@ namespace iroha {
        * @brief Everything that is required for cryptography is here.
        */
     struct Cryptography {
-      std::string public_key;   ///< content of the public key
-      std::string private_key;  ///< content of the private key
+      std::string public_key{};   ///< content of the public key
+      std::string private_key{};  ///< content of the private key
     };
 
     struct OtherOptions {
@@ -64,10 +65,10 @@ namespace iroha {
             vote_delay(defaults::voteDelay),
             load_delay(defaults::loadDelay) {}
 
-      size_t max_proposal_size;
-      std::chrono::milliseconds proposal_delay;
-      std::chrono::milliseconds vote_delay;
-      std::chrono::milliseconds load_delay;
+      size_t max_proposal_size{};
+      std::chrono::milliseconds proposal_delay{};
+      std::chrono::milliseconds vote_delay{};
+      std::chrono::milliseconds load_delay{};
     };
 
     /**

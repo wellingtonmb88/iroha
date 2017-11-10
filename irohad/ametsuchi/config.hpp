@@ -73,16 +73,16 @@ namespace iroha {
       struct BlockStorage {
         BlockStorage() : path(defaults::blockStoragePath) {}
 
-        std::string path;  ///< path to the folder with blocks
+        std::string path{};  ///< path to the folder with blocks
       };
 
       /**
        * Aggregate type for ametsuchi configuration.
        */
       struct Ametsuchi {
-        Redis redis;
-        Postgres postgres;
-        BlockStorage blockStorage;
+        Redis redis{};
+        Postgres postgres{};
+        BlockStorage blockStorage{};
       };
     }
   }
