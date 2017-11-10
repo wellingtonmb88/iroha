@@ -68,8 +68,8 @@ namespace iroha {
      * @param default_ default value, if variable does not exist
      */
     template <typename T>
-    T parse_env(const char *name, T default_) {
-      return from_string<T>(std::getenv(name)).value_or(default_);
+    T parse_env(const std::string &name, T default_) {
+      return from_string<T>(std::getenv(name.c_str())).value_or(default_);
     }
   }  // namespace string
 }  // namespace iroha

@@ -21,9 +21,10 @@ target_link_libraries(flat_file_test
 
 addtest(block_query_test block_query_test.cpp)
 target_link_libraries(block_query_test
-        ametsuchi
-        libs_common
-        )
+    ametsuchi
+    libs_common
+    ${Boost_LIBRARIES} # for system
+    )
 
 add_library(ametsuchi_fixture INTERFACE)
 target_link_libraries(ametsuchi_fixture INTERFACE

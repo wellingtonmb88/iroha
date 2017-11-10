@@ -29,7 +29,7 @@ class BlockQueryTest : public AmetsuchiTest {
   void SetUp() override {
     AmetsuchiTest::SetUp();
     storage =
-        StorageImpl::create(block_store_path, redishost_, redisport_, pgopt_);
+        StorageImpl::create(config);
 
     ASSERT_TRUE(storage);
 
