@@ -18,7 +18,10 @@
 #ifndef IROHA_APPLICATION_HPP
 #define IROHA_APPLICATION_HPP
 
+#include "ametsuchi/config.hpp"
+#include "ametsuchi/impl/peer_query_wsv.hpp"
 #include "ametsuchi/impl/storage_impl.hpp"
+#include "cli/common.hpp"
 #include "crypto/crypto.hpp"
 #include "logger/logger.hpp"
 #include "main/impl/block_loader_init.hpp"
@@ -28,71 +31,39 @@
 #include "model/model_crypto_provider_impl.hpp"
 #include "network/block_loader.hpp"
 #include "network/consensus_gate.hpp"
+#include "network/impl/peer_communication_service_impl.hpp"
 #include "network/ordering_gate.hpp"
 #include "network/peer_communication_service.hpp"
 #include "simulator/block_creator.hpp"
 #include "simulator/impl/simulator.hpp"
+#include "synchronizer/impl/synchronizer_impl.hpp"
 #include "synchronizer/synchronizer.hpp"
 #include "torii/command_service.hpp"
+#include "torii/config.hpp"
 #include "torii/processor/query_processor_impl.hpp"
 #include "torii/processor/transaction_processor_impl.hpp"
 #include "validation/chain_validator.hpp"
+#include "validation/impl/chain_validator_impl.hpp"
+#include "validation/impl/stateful_validator_impl.hpp"
 #include "validation/impl/stateless_validator_impl.hpp"
 #include "validation/stateful_validator.hpp"
 
-#include "ametsuchi/impl/peer_query_wsv.hpp"
-#include "network/impl/peer_communication_service_impl.hpp"
-#include "synchronizer/impl/synchronizer_impl.hpp"
-#include "validation/impl/chain_validator_impl.hpp"
-#include "validation/impl/stateful_validator_impl.hpp"
-
-class Irohad {
+class Application {
  public:
-  /**
-   * Constructor that initializes common iroha pipeline
-   * @param block_store_dir - folder where blocks will be stored
-   * @param redis_host - host of redis connection
-   * @param redis_port - port of redis connection
-   * @param pg_conn - initialization string for postgre
-   * @param torii_port - port for torii binding
-   * @param internal_port - port for internal communication - ordering service,
-   * consensus, and block loader
-   * @param max_proposal_size - maximum transactions that possible appears in
-   * one proposal
-   * @param proposal_delay - maximum waiting time util emitting new proposal
-   * @param vote_delay - waiting time before sending vote to next peer
-   * @param load_delay - waiting time before loading committed block from next
-   * peer
-   * @param keypair - public and private keys for crypto provider
-   */
-  Irohad(const std::string &block_store_dir,
-         const std::string &redis_host,
-         size_t redis_port,
-         const std::string &pg_conn,
-         size_t torii_port,
-         size_t internal_port,
-         size_t max_proposal_size,
-         std::chrono::milliseconds proposal_delay,
-         std::chrono::milliseconds vote_delay,
-         std::chrono::milliseconds load_delay,
-         const iroha::keypair_t &keypair);
-
-  /**
-   * Initialization of whole objects in system
-   */
-  virtual void init();
-
-  /**
-   * Drop wsv and block store
-   */
-  virtual void dropStorage();
+  Application(const iroha::ametsuchi::config::Ametsuchi &,
+              const iroha::torii::config::Torii &,
+              const iroha::config::Peer &,
+              const iroha::config::OtherOptions &,
+              const iroha::keypair_t);
 
   /**
    * Run worker threads for start performing
    */
   virtual void run();
 
-  virtual ~Irohad();
+  virtual void init();
+
+  virtual ~Application();
 
  protected:
   // -----------------------| component initialization |------------------------
@@ -123,20 +94,7 @@ class Irohad {
 
   virtual void initQueryService();
 
-  // constructor dependencies
-  std::string block_store_dir_;
-  std::string redis_host_;
-  size_t redis_port_;
-  std::string pg_conn_;
-  size_t torii_port_;
-  size_t internal_port_;
-  size_t max_proposal_size_;
-  std::chrono::milliseconds proposal_delay_;
-  std::chrono::milliseconds vote_delay_;
-  std::chrono::milliseconds load_delay_;
-
-  // ------------------------| internal dependencies |-------------------------
-
+ protected:
   // converter factories
   std::shared_ptr<iroha::model::converters::PbTransactionFactory> pb_tx_factory;
   std::shared_ptr<iroha::model::converters::PbQueryFactory> pb_query_factory;
@@ -186,13 +144,19 @@ class Irohad {
   iroha::consensus::yac::YacInit yac_init;
   iroha::network::BlockLoaderInit loader_init;
 
-  std::thread internal_thread, server_thread;
+  std::thread server_thread;
 
   logger::Logger log_;
 
+  /* config parameters */
+  iroha::ametsuchi::config::Ametsuchi ametsuchi_config_;
+  iroha::torii::config::Torii torii_;
+  iroha::config::Peer peer_;
+  iroha::config::OtherOptions other_;
+  iroha::keypair_t keypair_;
+
  public:
   std::shared_ptr<iroha::ametsuchi::Storage> storage;
-  iroha::keypair_t keypair;
 };
 
 #endif  // IROHA_APPLICATION_HPP

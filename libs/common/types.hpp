@@ -23,11 +23,12 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
-#include <typeinfo>
 #include <type_traits>
+#include <typeinfo>
 #include <vector>
 
 #include <nonstd/optional.hpp>
+#include <boost/optional.hpp>
 
 /**
  * This file defines common types used in iroha.
@@ -42,8 +43,7 @@ namespace iroha {
   using BadFormatException = std::invalid_argument;
   using byte_t = uint8_t;
 
-  static const std::string code = {'0', '1', '2', '3', '4', '5', '6', '7',
-                                   '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+  static const std::string code = "0123456789abcdef";
 
   /**
    * Base type which represents blob of fixed size.
@@ -56,7 +56,6 @@ namespace iroha {
   template <size_t size_>
   class blob_t : public std::array<byte_t, size_> {
    public:
-
     /**
      * Initialize blob value
      */
@@ -99,6 +98,17 @@ namespace iroha {
     static blob_t<size_> from_string(const std::string &data) {
       if (data.size() != size_) {
         throw BadFormatException("blob_t: input string has incorrect length");
+      }
+
+      blob_t<size_> b;
+      std::copy(data.begin(), data.end(), b.begin());
+
+      return b;
+    }
+
+    static boost::optional<blob_t<size_>> from_hexstring(const std::string &data) {
+      if (data.size() != size_) {
+        return boost::none;
       }
 
       blob_t<size_> b;

@@ -18,17 +18,16 @@
 #ifndef IROHA_STORAGE_IMPL_HPP
 #define IROHA_STORAGE_IMPL_HPP
 
-#include "ametsuchi/storage.hpp"
-
 #include <cmath>
-#include <shared_mutex>
-
 #include <cpp_redis/cpp_redis>
 #include <nonstd/optional.hpp>
 #include <pqxx/pqxx>
+#include <shared_mutex>
 #include "ametsuchi/impl/flat_file/flat_file.hpp"
+#include "ametsuchi/storage.hpp"
 #include "logger/logger.hpp"
 #include "model/converters/json_block_factory.hpp"
+#include "ametsuchi/config.hpp"
 
 namespace iroha {
   namespace ametsuchi {
@@ -41,8 +40,7 @@ namespace iroha {
           : block_store(std::move(block_store)),
             index(std::move(index)),
             pg_lazy(std::move(pg_lazy)),
-            pg_nontx(std::move(pg_nontx)) {
-      }
+            pg_nontx(std::move(pg_nontx)) {}
 
       std::unique_ptr<FlatFile> block_store;
       std::unique_ptr<cpp_redis::redis_client> index;
@@ -52,16 +50,12 @@ namespace iroha {
 
     class StorageImpl : public Storage {
      protected:
-      static nonstd::optional<ConnectionContext>
-      initConnections(std::string block_store_dir,
-                      std::string redis_host,
-                      std::size_t redis_port,
-                      std::string postgres_options);
+      static nonstd::optional<ConnectionContext> initConnections(
+          const config::Ametsuchi &am);
 
      public:
       static std::shared_ptr<StorageImpl> create(
-          std::string block_store_dir, std::string redis_host,
-          std::size_t redis_port, std::string postgres_connection);
+          const config::Ametsuchi &am);
 
       std::unique_ptr<TemporaryWsv> createTemporaryWsv() override;
 
@@ -69,7 +63,7 @@ namespace iroha {
 
       virtual bool insertBlock(model::Block block) override;
 
-      virtual void dropStorage() override;
+      virtual void drop() override;
 
       void commit(std::unique_ptr<MutableStorage> mutableStorage) override;
 
@@ -78,25 +72,13 @@ namespace iroha {
       std::shared_ptr<BlockQuery> getBlockQuery() const override;
 
      protected:
-
-      StorageImpl(std::string block_store_dir,
-                  std::string redis_host,
-                  std::size_t redis_port,
-                  std::string postgres_options,
+      StorageImpl(const config::Ametsuchi &am,
                   std::unique_ptr<FlatFile> block_store,
                   std::unique_ptr<cpp_redis::redis_client> index,
                   std::unique_ptr<pqxx::lazyconnection> wsv_connection,
                   std::unique_ptr<pqxx::nontransaction> wsv_transaction);
 
-      /**
-       * Folder with raw blocks
-       */
-      const std::string block_store_dir_;
-
-      // db info
-      const std::string redis_host_;
-      const std::size_t redis_port_;
-      const std::string postgres_options_;
+      const config::Ametsuchi config;
 
      private:
       std::unique_ptr<FlatFile> block_store_;

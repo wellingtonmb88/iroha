@@ -15,6 +15,11 @@
  * limitations under the License.
  */
 
+#include <boost/filesystem.hpp>
+#include <cstdio>
+#include <cstring>
+#include "ametsuchi/config.hpp"
+#include "cli/env-vars.hpp"
 #include "crypto/hash.hpp"
 #include "crypto/keys_manager_impl.hpp"
 #include "datetime/time.hpp"
@@ -23,97 +28,97 @@
 #include "main/raw_block_insertion.hpp"
 #include "model/generators/block_generator.hpp"
 #include "module/irohad/ametsuchi/ametsuchi_fixture.hpp"
+#include "torii/config.hpp"
+#include "util/string.hpp"
 
-#include <cstdio>
-
+using iroha::string::parse_env;
 using namespace framework::test_subscriber;
 using namespace std::chrono_literals;
+using ToriiConfig = iroha::torii::config::Torii;
+using AmetsuchiConfig = iroha::ametsuchi::config::Ametsuchi;
 
-class TestIrohad : public Irohad {
+class TestIrohad : public Application {
  public:
-  TestIrohad(const std::string &block_store_dir,
-             const std::string &redis_host,
-             size_t redis_port,
-             const std::string &pg_conn,
-             size_t torii_port,
-             size_t internal_port,
-             size_t max_proposal_size,
-             std::chrono::milliseconds proposal_delay,
-             std::chrono::milliseconds vote_delay,
-             std::chrono::milliseconds load_delay,
-             const iroha::keypair_t &keypair)
-      : Irohad(block_store_dir,
-               redis_host,
-               redis_port,
-               pg_conn,
-               torii_port,
-               internal_port,
-               max_proposal_size,
-               proposal_delay,
-               vote_delay,
-               load_delay,
-               keypair) {}
+  TestIrohad(const iroha::ametsuchi::config::Ametsuchi &am,
+             const iroha::torii::config::Torii &t,
+             const iroha::config::Peer &p,
+             const iroha::config::OtherOptions &o,
+             const iroha::keypair_t kp)
+      : Application(am, t, p, o, kp) {}
 
-  auto &getCommandService() { return command_service; }
+  auto &getCommandService() {
+    return command_service;
+  }
 
-  auto &getPeerCommunicationService() { return pcs; }
+  auto &getPeerCommunicationService() {
+    return pcs;
+  }
 
-  auto &getCryptoProvider() { return crypto_verifier; }
+  auto &getCryptoProvider() {
+    return crypto_verifier;
+  }
 
   void run() override {
     grpc::ServerBuilder builder;
     int port = 0;
-    builder.AddListeningPort("0.0.0.0:" + std::to_string(internal_port_),
-                             grpc::InsecureServerCredentials(),
-                             &port);
+    builder.AddListeningPort(
+        peer_.listenAddress(), grpc::InsecureServerCredentials(), &port);
+
     builder.RegisterService(ordering_init.ordering_gate_transport.get());
     builder.RegisterService(ordering_init.ordering_service_transport.get());
     builder.RegisterService(yac_init.consensus_network.get());
     builder.RegisterService(loader_init.service.get());
     internal_server = builder.BuildAndStart();
-    internal_thread = std::thread([this] { internal_server->Wait(); });
     log_->info("===> iroha initialized");
   }
 };
 
+using namespace iroha;
+
 class TxPipelineIntegrationTest : public iroha::ametsuchi::AmetsuchiTest {
  public:
   TxPipelineIntegrationTest() {
-    //spdlog::set_level(spdlog::level::off);
+    // spdlog::set_level(spdlog::level::off);
   }
+
+  ToriiConfig torii{};
+  config::Peer peer{};
+  config::OtherOptions other{};
 
   void SetUp() override {
     iroha::ametsuchi::AmetsuchiTest::SetUp();
+
+    {
+      peer.host = parse_env(IROHA_PEER_HOST, LOCALHOST);
+      peer.port = parse_env(IROHA_PEER_PORT, defaults::PEER_PORT);
+
+      torii.host = parse_env(IROHA_TORII_HOST, LOCALHOST);
+      torii.port = parse_env(IROHA_TORII_PORT, defaults::TORII_PORT);
+
+      other.load_delay = parse_env(IROHA_OTHER_LOADDELAY, defaults::LOAD_DELAY);
+      other.vote_delay = parse_env(IROHA_OTHER_VOTEDELAY, defaults::VOTE_DELAY);
+      other.proposal_delay =
+          parse_env(IROHA_OTHER_PROPOSALDELAY, defaults::PROPOSAL_DELAY);
+      other.max_proposal_size =
+          parse_env(IROHA_OTHER_PROPOSALSIZE, defaults::PROPOSAL_SIZE);
+    }
+
     genesis_block =
         iroha::model::generators::BlockGenerator().generateGenesisBlock(
-            {"0.0.0.0:10001"});
+            {peer.listenAddress()});
     manager = std::make_shared<iroha::KeysManagerImpl>("node0");
     auto keypair = manager->loadKeys().value();
 
-    irohad = std::make_shared<TestIrohad>(block_store_path,
-                                          redishost_,
-                                          redisport_,
-                                          pgopt_,
-                                          0,
-                                          10001,
-                                          10,
-                                          5000ms,
-                                          5000ms,
-                                          5000ms,
-                                          keypair);
+    irohad = std::make_shared<TestIrohad>(config, torii, peer, other, keypair);
 
     ASSERT_TRUE(irohad->storage);
 
     // insert genesis block
     iroha::main::BlockInserter inserter(irohad->storage);
-
-
     inserter.applyToLedger({genesis_block});
 
-    // initialize irohad
-    irohad->init();
-
     // start irohad
+    irohad->init();
     irohad->run();
   }
 

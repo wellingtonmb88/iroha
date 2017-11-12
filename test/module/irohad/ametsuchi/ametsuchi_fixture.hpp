@@ -18,12 +18,21 @@
 #ifndef IROHA_AMETSUCHI_FIXTURE_HPP
 #define IROHA_AMETSUCHI_FIXTURE_HPP
 
-#include "common/files.hpp"
-#include "logger/logger.hpp"
-
 #include <gtest/gtest.h>
+#include <boost/filesystem.hpp>
 #include <cpp_redis/cpp_redis>
 #include <pqxx/pqxx>
+#include "ametsuchi/config.hpp"
+#include "cli/env-vars.hpp"
+#include "common/files.hpp"
+#include "logger/logger.hpp"
+#include "util/string.hpp"
+
+using namespace std::literals::string_literals;
+using iroha::string::parse_env;
+
+#define LOCALHOST "127.0.0.1"s
+#define ALLHOST "0.0.0.0"s
 
 namespace iroha {
   namespace ametsuchi {
@@ -31,29 +40,34 @@ namespace iroha {
      * Class with ametsuchi initialization
      */
     class AmetsuchiTest : public ::testing::Test {
-     protected:
-      virtual void SetUp() {
-        auto log = logger::testLog("AmetsuchiTest");
+     public:
+      config::Ametsuchi config;
 
-        mkdir(block_store_path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-        auto pg_host = std::getenv("IROHA_POSTGRES_HOST");
-        auto pg_port = std::getenv("IROHA_POSTGRES_PORT");
-        auto pg_user = std::getenv("IROHA_POSTGRES_USER");
-        auto pg_pass = std::getenv("IROHA_POSTGRES_PASSWORD");
-        auto rd_host = std::getenv("IROHA_REDIS_HOST");
-        auto rd_port = std::getenv("IROHA_REDIS_PORT");
-        if (not pg_host) {
-          return;
-        }
-        std::stringstream ss;
-        ss << "host=" << pg_host << " port=" << pg_port << " user=" << pg_user
-           << " password=" << pg_pass;
-        pgopt_ = ss.str();
-        redishost_ = rd_host;
-        redisport_ = std::stoull(rd_port);
-        log->info("host={}, port={}, user={}, password={}", pg_host, pg_port,
-                  pg_user, pg_pass);
+      AmetsuchiTest(){
+        auto log = logger::testLog("AmetsuchiTest");
       }
+
+      virtual void SetUp() override {
+        config.redis.host = parse_env(IROHA_RDHOST, LOCALHOST);
+        config.redis.port = parse_env(IROHA_RDPORT, 6379);
+
+        config.postgres.host = parse_env(IROHA_PGHOST, LOCALHOST);
+        config.postgres.port = parse_env(IROHA_PGPORT, 5432);
+        config.postgres.database = parse_env(IROHA_PGDATABASE, "postgres"s);
+        config.postgres.username = parse_env(IROHA_PGUSER, "postgres"s);
+        config.postgres.password =
+            parse_env(IROHA_PGPASSWORD, "mysecretpassword"s);
+
+        config.blockStorage.path = parse_env(IROHA_BLOCKSPATH, "/tmp/blocks"s);
+
+        // throws basic_filesystem_error<std::string> if fails for any reason
+        // other than because the directory already exists.
+        // returns true, if directory is created, false otherwise, including
+        // case when directory existed.
+        boost::filesystem::create_directory(config.blockStorage.path);
+      }
+
+     protected:
       virtual void TearDown() {
         const auto drop = R"(
 DROP TABLE IF EXISTS account_has_signatory;
@@ -69,27 +83,19 @@ DROP TABLE IF EXISTS peer;
 DROP TABLE IF EXISTS role;
 )";
 
-        pqxx::connection connection(pgopt_);
+        pqxx::connection connection(config.postgres.options());
         pqxx::work txn(connection);
         txn.exec(drop);
         txn.commit();
         connection.disconnect();
 
         cpp_redis::redis_client client;
-        client.connect(redishost_, redisport_);
+        client.connect(config.redis.host, config.redis.port);
         client.flushall();
         client.sync_commit();
 
-        iroha::remove_all(block_store_path);
+        iroha::remove_all(config.blockStorage.path);
       }
-
-      std::string pgopt_ =
-          "host=localhost port=5432 user=postgres password=mysecretpassword";
-
-      std::string redishost_ = "localhost";
-      size_t redisport_ = 6379;
-
-      std::string block_store_path = "/tmp/block_store";
     };
   }  // namespace ametsuchi
 }  // namespace iroha
