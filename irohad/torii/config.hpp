@@ -29,8 +29,8 @@ namespace iroha {
        */
       struct Torii : public iroha::config::Service {
         Torii() {
-          host = defaults::toriiHost;
-          port = defaults::toriiPort;
+          host = defaults::TORII_HOST;
+          port = defaults::TORII_PORT;
         }
       };
     }

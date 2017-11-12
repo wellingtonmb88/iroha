@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
       "create"s, "Create new network with given genesis block"s);
   flag::addCreateLedgerFlags(ledger_create, &genesis_path);
   ledger_create->set_callback(
-      [&]() { cli::handler::ledger::create(&ametsuchi, genesis_path); });
+      [&]() { cli::handler::ledger::create(ametsuchi, genesis_path); });
 
   // ledger clear
   auto ledger_clear =
@@ -93,8 +93,12 @@ int main(int argc, char *argv[]) {
   auto config =
       main.add_subcommand("config"s, "Dump current configuration"s, false);
   config->set_callback([&]() {
-    cli::handler::config::config(&ametsuchi, &crypto, &other, &peer, &torii);
+    cli::handler::config::config(ametsuchi, crypto, other, peer, torii);
   });
+
+  config->add_flag("-u,--unset"s,
+                   [](auto) { cli::handler::config::unset(); },
+                   "Unset environment variables"s);
 
   // this macro parses config and executes according callback handler
   CLI11_PARSE(main, argc, argv);

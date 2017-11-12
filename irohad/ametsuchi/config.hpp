@@ -31,8 +31,8 @@ namespace iroha {
        */
       struct Redis : public iroha::config::Service {
         Redis() {
-          host = defaults::redisHost;
-          port = defaults::redisPort;
+          host = defaults::REDIS_HOST;
+          port = defaults::REDIS_PORT;
         }
       };
 
@@ -42,8 +42,8 @@ namespace iroha {
        */
       struct Postgres : public iroha::config::AuthService {
         Postgres() {
-          host = defaults::postgresHost;
-          port = defaults::postgresPort;
+          host = defaults::POSTGRES_HOST;
+          port = defaults::POSTGRES_PORT;
         }
 
         std::string database;
@@ -71,7 +71,7 @@ namespace iroha {
        * @note: there may be a config for NuDB or something else.
        */
       struct BlockStorage {
-        BlockStorage() : path(defaults::blockStoragePath) {}
+        BlockStorage() : path(defaults::BLOCK_STORAGE_PATH) {}
 
         std::string path{};  ///< path to the folder with blocks
       };

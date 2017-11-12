@@ -49,45 +49,76 @@ namespace iroha {
          *
          * Now config is applied.
          */
-        inline void config(const ametsuchi::config::Ametsuchi *am,
-                           const iroha::config::Cryptography *crypto,
-                           const iroha::config::OtherOptions *other,
-                           const iroha::config::Peer *peer,
-                           const torii::config::Torii *torii) {
+        inline void config(const ametsuchi::config::Ametsuchi &am,
+                           const iroha::config::Cryptography &crypto,
+                           const iroha::config::OtherOptions &other,
+                           const iroha::config::Peer &peer,
+                           const torii::config::Torii &torii) {
           using util::make_env_str;
           std::stringstream ss;
 
           ss  // postgres
-              << make_env_str(IROHA_PGHOST, am->postgres.host) << '\n'
-              << make_env_str(IROHA_PGPORT, am->postgres.port) << '\n'
-              << make_env_str(IROHA_PGDATABASE, am->postgres.database) << '\n'
-              << make_env_str(IROHA_PGUSER, am->postgres.username) << '\n'
-              << make_env_str(IROHA_PGPASSWORD, am->postgres.password) << '\n'
+              << make_env_str(IROHA_PGHOST, am.postgres.host) << '\n'
+              << make_env_str(IROHA_PGPORT, am.postgres.port) << '\n'
+              << make_env_str(IROHA_PGDATABASE, am.postgres.database) << '\n'
+              << make_env_str(IROHA_PGUSER, am.postgres.username) << '\n'
+              << make_env_str(IROHA_PGPASSWORD, am.postgres.password) << '\n'
               // redis
-              << make_env_str(IROHA_RDHOST, am->redis.host) << '\n'
-              << make_env_str(IROHA_RDPORT, am->redis.port) << '\n'
+              << make_env_str(IROHA_RDHOST, am.redis.host) << '\n'
+              << make_env_str(IROHA_RDPORT, am.redis.port) << '\n'
               // block storage
-              << make_env_str(IROHA_BLOCKSPATH, am->blockStorage.path) << '\n'
+              << make_env_str(IROHA_BLOCKSPATH, am.blockStorage.path) << '\n'
               // other options
-              << make_env_str(IROHA_OTHER_LOADDELAY, other->load_delay.count())
+              << make_env_str(IROHA_OTHER_LOADDELAY, other.load_delay) << '\n'
+              << make_env_str(IROHA_OTHER_VOTEDELAY, other.vote_delay) << '\n'
+              << make_env_str(IROHA_OTHER_PROPOSALDELAY, other.proposal_delay)
               << '\n'
-              << make_env_str(IROHA_OTHER_VOTEDELAY, other->vote_delay.count())
-              << '\n'
-              << make_env_str(IROHA_OTHER_PROPOSALDELAY,
-                              other->proposal_delay.count())
-              << '\n'
-              << make_env_str(IROHA_OTHER_PROPOSALSIZE,
-                              other->max_proposal_size)
+              << make_env_str(IROHA_OTHER_PROPOSALSIZE, other.max_proposal_size)
               << '\n'
               // cryptography
-              << make_env_str(IROHA_PEER_PUBKEY, crypto->public_key) << '\n'
-              << make_env_str(IROHA_PEER_PRIVKEY, crypto->private_key) << '\n'
+              << make_env_str(IROHA_PEER_PUBKEY, crypto.public_key) << '\n'
+              << make_env_str(IROHA_PEER_PRIVKEY, crypto.private_key) << '\n'
               // torii
-              << make_env_str(IROHA_TORII_HOST, torii->host) << '\n'
-              << make_env_str(IROHA_TORII_PORT, torii->port) << '\n'
+              << make_env_str(IROHA_TORII_HOST, torii.host) << '\n'
+              << make_env_str(IROHA_TORII_PORT, torii.port) << '\n'
               // peer
-              << make_env_str(IROHA_PEER_HOST, peer->host) << '\n'
-              << make_env_str(IROHA_PEER_PORT, peer->port) << '\n';
+              << make_env_str(IROHA_PEER_HOST, peer.host) << '\n'
+              << make_env_str(IROHA_PEER_PORT, peer.port) << '\n'
+              << "\n"
+              << "# Run this command to configure your shell: "
+              << "\n"
+              << "# eval $(irohad config)"
+              << "\n";
+
+          std::cout << ss.str();
+          std::exit(EXIT_SUCCESS);
+        }
+
+        inline void unset() {
+          std::stringstream ss;
+          ss << "unset " << IROHA_PGHOST << "\n"
+             << "unset " << IROHA_PGPORT << "\n"
+             << "unset " << IROHA_PGDATABASE << "\n"
+             << "unset " << IROHA_PGUSER << "\n"
+             << "unset " << IROHA_PGPASSWORD << "\n"
+             << "unset " << IROHA_RDHOST << "\n"
+             << "unset " << IROHA_RDPORT << "\n"
+             << "unset " << IROHA_BLOCKSPATH << "\n"
+             << "unset " << IROHA_OTHER_LOADDELAY << "\n"
+             << "unset " << IROHA_OTHER_VOTEDELAY << "\n"
+             << "unset " << IROHA_OTHER_PROPOSALDELAY << "\n"
+             << "unset " << IROHA_OTHER_PROPOSALSIZE << "\n"
+             << "unset " << IROHA_PEER_PUBKEY << "\n"
+             << "unset " << IROHA_PEER_PRIVKEY << "\n"
+             << "unset " << IROHA_TORII_HOST << "\n"
+             << "unset " << IROHA_TORII_PORT << "\n"
+             << "unset " << IROHA_PEER_HOST << "\n"
+             << "unset " << IROHA_PEER_PORT << "\n"
+             << "\n"
+             << "# Run this command to remove config from your shell: "
+             << "\n"
+             << "# eval $(irohad config -u)"
+             << "\n";
 
           std::cout << ss.str();
           std::exit(EXIT_SUCCESS);

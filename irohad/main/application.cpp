@@ -50,7 +50,7 @@ Application::Application(const iroha::ametsuchi::config::Ametsuchi &am,
   initStorage();
 }
 
-void Application::init(){
+void Application::init() {
   initProtoFactories();
   initPeerQuery();
   initCryptoProvider();
@@ -136,8 +136,10 @@ void Application::initValidators() {
 void Application::initOrderingGate() {
   PRECONDITION_TRUE(wsv);
 
+  auto proposal_delay = std::chrono::milliseconds(other_.proposal_delay);
+
   ordering_gate = ordering_init.initOrderingGate(
-      wsv, other_.max_proposal_size, other_.proposal_delay);
+      wsv, other_.max_proposal_size, proposal_delay);
 
   POSTCONDITION_TRUE(ordering_gate);
 
@@ -180,13 +182,16 @@ void Application::initConsensusGate() {
   PRECONDITION_TRUE(simulator);
   PRECONDITION_TRUE(block_loader);
 
+  auto vote_delay = std::chrono::milliseconds(other_.vote_delay);
+  auto load_delay = std::chrono::milliseconds(other_.load_delay);
+
   consensus_gate = yac_init.initConsensusGate(peer_.listenAddress(),
                                               wsv,
                                               simulator,
                                               block_loader,
                                               keypair_,
-                                              other_.vote_delay,
-                                              other_.load_delay);
+                                              vote_delay,
+                                              load_delay);
 
   POSTCONDITION_TRUE(consensus_gate);
 

@@ -29,16 +29,16 @@ namespace iroha {
     namespace handler {
       namespace ledger {
 
-        inline void create(ametsuchi::config::Ametsuchi *am,
+        inline void create(const ametsuchi::config::Ametsuchi &am,
                            const std::string &genesis_path) {
           BOOST_ASSERT_MSG(not genesis_path.empty(),
                            "content of genesis_path is empty");
 
           auto log = logger::log("create");
-          auto storage = ametsuchi::StorageImpl::create(*am);
+          auto storage = ametsuchi::StorageImpl::create(am);
 
           auto genesis_content = filesystem::read_file(genesis_path);
-          if(not genesis_content){
+          if (not genesis_content) {
             log->error("Failed to read genesis block");
             std::exit(EXIT_FAILURE);
           }

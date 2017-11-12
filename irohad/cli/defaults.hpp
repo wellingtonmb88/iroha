@@ -24,28 +24,27 @@
 #include "cli/env-vars.hpp"
 
 namespace defaults {
-  using namespace std::literals::chrono_literals;
 
   const std::string LOCALHOST = "localhost";
   const std::string ALLHOST = "0.0.0.0";
 
-  const std::string postgresHost = LOCALHOST;
-  const std::uint16_t postgresPort = 6379;
+  const std::string POSTGRES_HOST = LOCALHOST;
+  const std::uint16_t POSTGRES_PORT = 6379;
 
-  const std::string peerHost = LOCALHOST;
-  const std::uint16_t peerPort = 11111;
+  const std::string PEER_HOST = LOCALHOST;
+  const std::uint16_t PEER_PORT = 11111;
 
-  const std::string redisHost = LOCALHOST;
-  const std::uint16_t redisPort = 5432;
+  const std::string REDIS_HOST = LOCALHOST;
+  const std::uint16_t REDIS_PORT = 5432;
 
-  const std::string blockStoragePath = "blocks";
+  const std::string BLOCK_STORAGE_PATH = "blocks";
 
-  const std::string toriiHost = LOCALHOST;
-  const std::uint16_t toriiPort = 50051;
+  const std::string TORII_HOST = LOCALHOST;
+  const std::uint16_t TORII_PORT = 50051;
 
-  const auto loadDelay = 5000ms;
-  const auto voteDelay = 5000ms;
-  const auto proposalDelay = 5000ms;
-  const std::size_t proposalSize = 10;
+  const std::size_t LOAD_DELAY = 5000 /* ms */;
+  const std::size_t VOTE_DELAY = 5000 /* ms */;
+  const std::size_t PROPOSAL_DELAY = 5000 /* ms */;
+  const std::size_t PROPOSAL_SIZE = 10 /* transactions */;
 }
 #endif  //  IROHA_CLI_DEFAULTS_HPP_

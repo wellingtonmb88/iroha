@@ -60,15 +60,15 @@ namespace iroha {
 
     struct OtherOptions {
       OtherOptions()
-          : max_proposal_size(defaults::proposalSize),
-            proposal_delay(defaults::proposalDelay),
-            vote_delay(defaults::voteDelay),
-            load_delay(defaults::loadDelay) {}
+          : max_proposal_size(defaults::PROPOSAL_SIZE),
+            proposal_delay(defaults::PROPOSAL_DELAY),
+            vote_delay(defaults::VOTE_DELAY),
+            load_delay(defaults::LOAD_DELAY) {}
 
       size_t max_proposal_size{};
-      std::chrono::milliseconds proposal_delay{};
-      std::chrono::milliseconds vote_delay{};
-      std::chrono::milliseconds load_delay{};
+      size_t proposal_delay{};
+      size_t vote_delay{};
+      size_t load_delay{};
     };
 
     /**
@@ -78,8 +78,8 @@ namespace iroha {
      */
     struct Peer : public Service {
       Peer() {
-        host = defaults::peerHost;
-        port = defaults::peerPort;
+        host = defaults::PEER_HOST;
+        port = defaults::PEER_PORT;
       }
     };
   }  // namespace config

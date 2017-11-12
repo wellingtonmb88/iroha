@@ -46,11 +46,17 @@ class TestIrohad : public Application {
              const iroha::keypair_t kp)
       : Application(am, t, p, o, kp) {}
 
-  auto &getCommandService() { return command_service; }
+  auto &getCommandService() {
+    return command_service;
+  }
 
-  auto &getPeerCommunicationService() { return pcs; }
+  auto &getPeerCommunicationService() {
+    return pcs;
+  }
 
-  auto &getCryptoProvider() { return crypto_verifier; }
+  auto &getCryptoProvider() {
+    return crypto_verifier;
+  }
 
   void run() override {
     grpc::ServerBuilder builder;
@@ -84,19 +90,17 @@ class TxPipelineIntegrationTest : public iroha::ametsuchi::AmetsuchiTest {
 
     {
       peer.host = parse_env(IROHA_PEER_HOST, LOCALHOST);
-      peer.port = parse_env(IROHA_PEER_PORT, defaults::peerPort);
+      peer.port = parse_env(IROHA_PEER_PORT, defaults::PEER_PORT);
 
       torii.host = parse_env(IROHA_TORII_HOST, LOCALHOST);
-      torii.port = parse_env(IROHA_TORII_PORT, defaults::toriiPort);
+      torii.port = parse_env(IROHA_TORII_PORT, defaults::TORII_PORT);
 
-      auto load_d = parse_env(IROHA_OTHER_LOADDELAY, 5000);
-      auto vote_d = parse_env(IROHA_OTHER_VOTEDELAY, 5000);
-      auto proposal_d = parse_env(IROHA_OTHER_PROPOSALDELAY, 5000);
-
-      other.load_delay = std::chrono::milliseconds(load_d);
-      other.vote_delay = std::chrono::milliseconds(vote_d);
-      other.proposal_delay = std::chrono::milliseconds(proposal_d);
-      other.max_proposal_size = parse_env(IROHA_OTHER_PROPOSALSIZE, 10);
+      other.load_delay = parse_env(IROHA_OTHER_LOADDELAY, defaults::LOAD_DELAY);
+      other.vote_delay = parse_env(IROHA_OTHER_VOTEDELAY, defaults::VOTE_DELAY);
+      other.proposal_delay =
+          parse_env(IROHA_OTHER_PROPOSALDELAY, defaults::PROPOSAL_DELAY);
+      other.max_proposal_size =
+          parse_env(IROHA_OTHER_PROPOSALSIZE, defaults::PROPOSAL_SIZE);
     }
 
     genesis_block =
