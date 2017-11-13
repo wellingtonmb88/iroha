@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 
+#include <endpoint.pb.h>
 #include <responses.pb.h>
 
-#include <endpoint.pb.h>
+#include "client.hpp"
 
 #include "crypto/hash.hpp"
 #include "module/irohad/ametsuchi/ametsuchi_mocks.hpp"
 #include "module/irohad/network/network_mocks.hpp"
+#include "module/irohad/torii/torii_mocks.hpp"
 #include "module/irohad/validation/validation_mocks.hpp"
-
-#include "client.hpp"
 
 #include "main/server_runner.hpp"
 #include "torii/processor/query_processor_impl.hpp"
@@ -37,10 +37,10 @@
 constexpr const char *Ip = "0.0.0.0";
 constexpr int Port = 50051;
 
-using ::testing::Return;
 using ::testing::A;
-using ::testing::_;
 using ::testing::AtLeast;
+using ::testing::Return;
+using ::testing::_;
 
 using namespace iroha::ametsuchi;
 using namespace iroha::network;
@@ -51,12 +51,13 @@ class ClientServerTest : public testing::Test {
  public:
   virtual void SetUp() {
     // Run a server
-    runner = std::make_unique<ServerRunner>(std::string(Ip) + ":" +
-                                            std::to_string(Port));
+    runner = std::make_unique<ServerRunner>(std::string(Ip) + ":"
+                                            + std::to_string(Port));
     th = std::thread([this] {
       // ----------- Command Service --------------
       pcsMock = std::make_shared<MockPeerCommunicationService>();
       svMock = std::make_shared<MockStatelessValidator>();
+      mst = std::make_shared<iroha::torii::MockMstProcessorDummy>();
       wsv_query = std::make_shared<MockWsvQuery>();
       block_query = std::make_shared<MockBlockQuery>();
 
@@ -71,7 +72,7 @@ class ClientServerTest : public testing::Test {
 
       auto tx_processor =
           std::make_shared<iroha::torii::TransactionProcessorImpl>(pcsMock,
-                                                                   svMock);
+                                                                   svMock, mst);
       auto pb_tx_factory =
           std::make_shared<iroha::model::converters::PbTransactionFactory>();
       auto command_service =
@@ -108,6 +109,7 @@ class ClientServerTest : public testing::Test {
   std::thread th;
   std::shared_ptr<MockPeerCommunicationService> pcsMock;
   std::shared_ptr<MockStatelessValidator> svMock;
+  std::shared_ptr<iroha::torii::MockMstProcessorDummy> mst;
 
   std::shared_ptr<MockWsvQuery> wsv_query;
   std::shared_ptr<MockBlockQuery> block_query;
