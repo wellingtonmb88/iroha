@@ -11,7 +11,7 @@ PROJECT(iroha C CXX)
 SET(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 SET(CMAKE_CXX_FLAGS "-std=c++1y -Wall")
 SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
-SET(CMAKE_CXX_FLAGS_DEBUG   "-g -Wextra -Wno-unused-parameter -O0 -Wno-deprecated-declarations -ftemplate-backtrace-limit=0")
+SET(CMAKE_CXX_FLAGS_DEBUG   "-g -Wextra -Wno-unused-parameter -O0 -Wno-deprecated-declarations")
 SET(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
 SET(CMAKE_INSTALL_RPATH "../lib")
 
