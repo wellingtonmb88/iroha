@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "crypto/hash.hpp"
+#include "cryptography/ed25519_sha3_impl/internal/sha3_hash.hpp"
 #include "model/query_execution.hpp"
 #include "model/execution/common_executor.hpp"
 #include "model/permissions.hpp"
