@@ -66,6 +66,10 @@ namespace torii {
           res->second.set_tx_status(
               iroha::protocol::TxStatus::NOT_RECEIVED);
           break;
+        case iroha::model::TransactionResponse::EXPIRED:
+          res->second.set_tx_status(
+              iroha::protocol::TxStatus::EXPIRED);
+          break;
       }
 
       this->handler_map_.insert({iroha_response->tx_hash, res->second});
