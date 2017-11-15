@@ -20,16 +20,17 @@
 
 #include "ametsuchi/block_query.hpp"
 
+#include "ametsuchi/impl/redis_block_query.hpp" // temporary solution
 #include "ametsuchi/impl/flat_file/flat_file.hpp"
 #include "model/converters/json_block_factory.hpp"
-#include "model/queries/get_account_transactions.hpp"
 #include "model/queries/get_account_asset_transactions.hpp"
+#include "model/queries/get_account_transactions.hpp"
 
 namespace iroha {
   namespace ametsuchi {
     class FlatFileBlockQuery : public BlockQuery {
      public:
-      explicit FlatFileBlockQuery(FlatFile &block_store);
+      FlatFileBlockQuery(cpp_redis::redis_client &client, FlatFile &file_store);
 
       rxcpp::observable<model::Block> getBlocks(uint32_t height,
                                                 uint32_t count) override;
@@ -39,21 +40,20 @@ namespace iroha {
       rxcpp::observable<model::Block> getTopBlocks(uint32_t count) override;
 
       rxcpp::observable<model::Transaction> getAccountTransactions(
-        const std::string& account_id, const model::Pager& pager) override;
+          const std::string &account_id, const model::Pager &pager) override;
 
       rxcpp::observable<model::Transaction> getAccountAssetTransactions(
-        const std::string& account_id,
-        const std::vector<std::string>& assets_id,
-        const model::Pager& pager) override;
+          const std::string &account_id,
+          const std::vector<std::string> &assets_id,
+          const model::Pager &pager) override;
 
-     protected:
-      FlatFile &block_store_;
-      model::converters::JsonBlockFactory serializer_;
+      boost::optional<model::Transaction> getTxByHashSync(
+          const std::string &hash) override;
 
      private:
       template <typename CommandType, typename Predicate>
-      bool searchCommand(const std::shared_ptr<iroha::model::Command>& command,
-                         const Predicate& predicate) const {
+      bool searchCommand(const std::shared_ptr<iroha::model::Command> &command,
+                         const Predicate &predicate) const {
         if (const auto p = std::dynamic_pointer_cast<CommandType>(command)) {
           return predicate(*p);
         }
@@ -61,12 +61,16 @@ namespace iroha {
       }
 
       bool hasAssetRelatedCommand(
-        const std::string& account_id,
-        const std::vector<std::string>& assets_id,
-        const std::shared_ptr<iroha::model::Command>& command) const;
+          const std::string &account_id,
+          const std::vector<std::string> &assets_id,
+          const std::shared_ptr<iroha::model::Command> &command) const;
 
       rxcpp::observable<model::Transaction> reverseObservable(
-        const rxcpp::observable<model::Transaction>& o) const;
+          const rxcpp::observable<model::Transaction> &o) const;
+
+      FlatFile &block_store_;
+      cpp_redis::redis_client &client_; // temporary solution
+      model::converters::JsonBlockFactory serializer_;
     };
   }  // namespace ametsuchi
 }  // namespace iroha

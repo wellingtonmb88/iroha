@@ -120,6 +120,8 @@ namespace iroha {
                    rxcpp::observable<model::Block>(uint32_t, uint32_t));
       MOCK_METHOD1(getBlocksFrom, rxcpp::observable<model::Block>(uint32_t));
       MOCK_METHOD1(getTopBlocks, rxcpp::observable<model::Block>(uint32_t));
+      MOCK_METHOD1(getTxByHashSync,
+                   boost::optional<model::Transaction>(const std::string &));
     };
 
     class MockTemporaryFactory : public TemporaryFactory {

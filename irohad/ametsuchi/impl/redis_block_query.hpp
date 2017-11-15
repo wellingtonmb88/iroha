@@ -44,6 +44,18 @@ namespace iroha {
       rxcpp::observable<boost::optional<model::Transaction>> getTransactions(
           const std::vector<iroha::hash256_t> &tx_hashes) override;
 
+      rxcpp::observable<model::Transaction> getAccountTransactions(
+          const std::string &account_id, const model::Pager &pager) override {
+        throw std::runtime_error("Not implemented");
+      }
+
+      rxcpp::observable<model::Transaction> getAccountAssetTransactions(
+          const std::string &account_id,
+          const std::vector<std::string> &assets_id,
+          const model::Pager &pager) override {
+        throw std::runtime_error("Not implemented");
+      }
+
       boost::optional<model::Transaction> getTxByHashSync(
           const std::string &hash) override;
 
