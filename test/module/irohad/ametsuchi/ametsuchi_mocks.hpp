@@ -104,9 +104,6 @@ namespace iroha {
 
     class MockBlockQuery : public BlockQuery {
      public:
-      MOCK_METHOD1(
-          getTxByHashSync,
-          boost::optional<model::Transaction>(const std::string &hash));
       MOCK_METHOD1(getTransactions,
                    rxcpp::observable<boost::optional<model::Transaction>>(
                      const std::vector<iroha::hash256_t> &tx_hashes));
