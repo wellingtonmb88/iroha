@@ -27,6 +27,9 @@
 #include "model/generators/block_generator.hpp"
 #include "module/irohad/ametsuchi/ametsuchi_fixture.hpp"
 
+#include <thread>
+#include <chrono>
+
 using namespace framework::test_subscriber;
 using namespace std::chrono_literals;
 using namespace iroha::model::generators;
@@ -120,6 +123,8 @@ class TxPipelineIntegrationTestFixture
 
       google::protobuf::Empty response;
       irohad->getCommandService()->ToriiAsync(pb_tx, response);
+      // prevent transactions from being reversed
+      std::this_thread::sleep_for(100ms);
     }
   }
 
