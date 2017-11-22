@@ -174,8 +174,8 @@ int main(int argc, char *argv[]) {
       // IR-334
       InteractiveCli interactiveCli(
           FLAGS_name,
-          0,
-          0,
+          /* tx counter */ 0,
+          /* query counter */ 0,
           client,
           std::make_shared<iroha::model::ModelCryptoProviderImpl>(
               keypair.value()));

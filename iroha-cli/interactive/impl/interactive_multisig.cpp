@@ -64,11 +64,10 @@ namespace iroha_cli {
         auto iroha_tx = *pb_factory.deserialize(tx);
         uncompleted_transactions.push_back(iroha_tx);
         auto tx_hash = iroha::hash(tx);
-        auto decr = "creator " + iroha_tx.creator_account_id + " hash "
-            + tx_hash.to_hexstring() + " sigs/quorum "
-            + std::to_string(iroha_tx.signatures.size()) + "/"
-            + std::to_string(iroha_tx.quorum);
-        addMenuPoint(tx_menu, decr, "");
+        std::stringstream ss;
+        ss << "creator " << iroha_tx.creator_account_id << " hash " << tx_hash.to_hexstring() << " sigs/quorum " <<
+           iroha_tx.signatures.size() << "/" << iroha_tx.quorum;
+        addMenuPoint(tx_menu, ss.str(), "");
       }
       addBackOption(tx_menu);
       // ---- Parsing pipeline ----

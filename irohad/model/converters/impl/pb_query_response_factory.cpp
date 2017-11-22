@@ -219,7 +219,7 @@ namespace iroha {
         model::RolesResponse res{};
         std::copy(response.roles().begin(),
                   response.roles().end(),
-                  res.roles.begin());
+                  std::back_inserter(res.roles));
         return res;
       }
 

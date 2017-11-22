@@ -24,10 +24,7 @@
 namespace iroha_cli {
 
   CliClient::CliClient(const CliClient &client)
-      : server_ip(client.server_ip),
-        server_port(client.server_port),
-        command_client_(server_ip, server_port),
-        query_client_(server_ip, server_port) {}
+      : CliClient(client.server_ip, client.server_port){};
 
   CliClient::CliClient(std::string target_ip, int port)
       : server_ip(target_ip),
@@ -75,4 +72,4 @@ namespace iroha_cli {
     return response;
   }
 
-} // namespace iroha_cli
+}  // namespace iroha_cli
