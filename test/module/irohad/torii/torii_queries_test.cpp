@@ -455,67 +455,6 @@ TEST_F(ToriiQueriesTest, FindSignatoriesHasRolePermissions) {
   ASSERT_EQ(response_pubkey, pubkey);
 }
 
-/**
- * Test for transactions response
- */
-
-TEST_F(ToriiQueriesTest, FindTransactionsWhenValid) {
-  EXPECT_CALL(*statelessValidatorMock,
-              validate(A<const iroha::model::Query &>()))
-      .WillOnce(Return(true));
-
-  iroha::model::Account account;
-  account.account_id = "accountA";
-
-  auto txs_observable = rxcpp::observable<>::iterate([account] {
-    std::vector<iroha::model::Transaction> result;
-    for (size_t i = 0; i < 3; ++i) {
-      iroha::model::Transaction current;
-      current.creator_account_id = account.account_id;
-      current.tx_counter = i;
-      result.push_back(current);
-    }
-    return result;
-  }());
-
-  // TODO: refactor this to use stateful validation mocks
-  auto creator =  "accountA";
-  std::vector<std::string> roles = {"test"};
-  EXPECT_CALL(*wsv_query, getAccountRoles(creator))
-      .WillOnce(Return(roles));
-  std::vector<std::string> perm = {can_get_my_acc_txs};
-  EXPECT_CALL(*wsv_query, getRolePermissions("test"))
-      .WillOnce(Return(perm));
-  EXPECT_CALL(*block_query, getAccountTransactions(account.account_id))
-      .WillOnce(Return(txs_observable));
-
-  iroha::protocol::QueryResponse response;
-
-  auto query = iroha::protocol::Query();
-
-  query.mutable_payload()->set_creator_account_id(account.account_id);
-  query.mutable_payload()->mutable_get_account_transactions()->set_account_id(
-      account.account_id);
-  query.mutable_signature()->set_pubkey(pubkey_test);
-  query.mutable_signature()->set_signature(signature_test);
-
-  auto stat = torii_utils::QuerySyncClient(Ip, Port).Find(query, response);
-  ASSERT_TRUE(stat.ok());
-  // Should not return Error Response because tx is stateless and stateful valid
-  ASSERT_FALSE(response.has_error_response());
-  for (auto i = 0; i < response.transactions_response().transactions_size();
-       i++) {
-    ASSERT_EQ(response.transactions_response()
-                  .transactions(i)
-                  .payload()
-                  .creator_account_id(),
-              account.account_id);
-    ASSERT_EQ(
-        response.transactions_response().transactions(i).payload().tx_counter(),
-        i);
-  }
-}
-
 TEST_F(ToriiQueriesTest, FindManyTimesWhereQueryServiceSync) {
   EXPECT_CALL(*statelessValidatorMock,
               validate(A<const iroha::model::Query &>()))
