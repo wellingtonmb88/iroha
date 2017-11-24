@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
   }  // ---- Create new account in Iroha system ----
   else if (FLAGS_new_account) {
     // Create new pub/priv key
-    // TODO: check with the Iroha system that such account is unique?
+    // TODO 24/11/17 grimadas check with the Iroha system that such account is unique?
     auto keysManager = iroha::KeysManagerImpl(FLAGS_name);
     if (not keysManager.createKeys(FLAGS_pass_phrase)) {
       logger->error("Keys already exist");
@@ -121,7 +121,7 @@ int main(int argc, char *argv[]) {
         logger->error("Json has wrong format.");
       }
       auto tx_opt = serializer.deserialize(doc.value());
-      // TODO: Add specific reason why json is wrong
+      // TODO 13/09/17 grimadas: Add specific reason why json is wrong
       if (not tx_opt.has_value()) {
         logger->error("Json transaction has wrong format.");
       } else {
@@ -137,7 +137,7 @@ int main(int argc, char *argv[]) {
       iroha::model::converters::JsonQueryFactory serializer;
       auto query_opt = serializer.deserialize(str);
       if (not query_opt.has_value()) {
-        // TODO: Add specific reason why json is wrong
+        // TODO 13/09/17 grimadas: Add specific reason why json is wrong
         logger->error("Json has wrong format.");
       } else {
         response_handler.handle(client.sendQuery(query_opt.value()));
