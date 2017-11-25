@@ -23,7 +23,8 @@ namespace iroha_cli {
       const CliClient::TxStatus status) const {
     switch (status) {
       case iroha_cli::CliClient::OK:
-        log_->info("Transaction successfully sent");
+        log_->info(
+            "Transaction sent to Iroha Peer. Check the Status of transaction.");
         break;
         /*
       case iroha_cli::CliClient::NOT_VALID:

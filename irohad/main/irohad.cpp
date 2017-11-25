@@ -24,12 +24,9 @@
 #include "main/iroha_conf_loader.hpp"
 #include "main/raw_block_insertion.hpp"
 
-#include "logger/logger.hpp"
-
 bool validate_config(const char *flag_name, std::string const &path) {
   return not path.empty();
 }
-
 
 bool validate_keypair_name(const char *flag_name, std::string const &path) {
   return not path.empty();
