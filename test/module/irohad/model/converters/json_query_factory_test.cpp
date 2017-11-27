@@ -24,6 +24,7 @@
 
 #include "model/queries/get_asset_info.hpp"
 #include "model/queries/get_roles.hpp"
+#include "model/queries/get_account_asset_transactions.hpp"
 
 using namespace iroha;
 using namespace iroha::model;
@@ -181,4 +182,13 @@ TEST(QuerySerializerTest, get_role_permissions){
   auto val = queryGenerator.generateGetRolePermissions();
   val->signature = generateSignature(42);
   runQueryTest(val);
+}
+
+TEST(QuerySerializerTest, get_account_asset_transactions) {
+  QueryGenerator queryGenerator;
+  auto val = queryGenerator.generateGetAccountAssetTransactions(
+    0, "admin", 0, "alice", {"a", "b"},
+    iroha::model::Pager{iroha::hash256_t{}, 10});
+  (*val)->signature = generateSignature(42);
+  runQueryTest(*val);
 }
