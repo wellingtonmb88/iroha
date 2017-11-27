@@ -15,23 +15,45 @@
  * limitations under the License.
  */
 
-#ifndef IROHA_GET_TRANSACTIONS_HPP
-#define IROHA_GET_TRANSACTIONS_HPP
+#ifndef IROHA_GET_ACCOUNT_ASSET_TRANSACTIONS_HPP
+#define IROHA_GET_ACCOUNT_ASSET_TRANSACTIONS_HPP
 
 #include <model/query.hpp>
 #include <string>
+#include <vector>
+#include "model/queries/pager.hpp"
 
 namespace iroha {
   namespace model {
     /**
-      * Query for getting transactions of account
-      */
-    struct GetAccountTransactions : Query {
+     * Query for getting transactions of given asset of an account
+     */
+    struct GetAccountAssetTransactions : Query {
       /**
        * Account identifier
        */
       std::string account_id{};
+
+      /**
+       * Asset identifiers
+       */
+      std::vector<std::string> assets_id{};
+
+      /**
+       * Pager for transactions
+       */
+      Pager pager{};
+
+      using AssetsIdType = decltype(assets_id);
+
+      bool operator==(GetAccountAssetTransactions const& rhs) const {
+        return account_id == rhs.account_id and assets_id == rhs.assets_id
+               and pager == rhs.pager;
+      }
+      bool operator!=(GetAccountAssetTransactions const& rhs) const {
+        return not(operator==(rhs));
+      }
     };
   }  // namespace model
 }  // namespace iroha
-#endif  // IROHA_GET_TRANSACTIONS_HPP
+#endif  // IROHA_GET_ACCOUNT_ASSET_TRANSACTIONS_HPP
