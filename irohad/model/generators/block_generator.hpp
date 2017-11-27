@@ -14,12 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef IROHA_BLOCK_GENERATOR_HPP
+#define IROHA_BLOCK_GENERATOR_HPP
 
 #include "model/block.hpp"
 #include "model/generators/transaction_generator.hpp"
 
-#ifndef IROHA_BLOCK_GENERATOR_HPP
-#define IROHA_BLOCK_GENERATOR_HPP
 namespace iroha {
   namespace model {
     namespace generators {
@@ -33,12 +33,25 @@ namespace iroha {
          * @return model Block
          */
         iroha::model::Block generateGenesisBlock(
-          ts64_t created_ts,
-          const std::vector<iroha::model::Transaction>& transactions);
-      };
+            ts64_t created_ts,
+            const std::vector<iroha::model::Transaction> &transactions);
 
+        /**
+         * Generate block from give meta data and transaction list
+         * @param created_ts
+         * @param height
+         * @param prev_hash
+         * @param transactions
+         * @return
+         */
+        iroha::model::Block generateBlock(
+            ts64_t created_ts,
+            uint64_t height,
+            const iroha::hash256_t &prev_hash,
+            const std::vector<iroha::model::Transaction> &transactions);
+      };
     }  // namespace generators
-  }    // namespace model
+  }  // namespace model
 }  // namespace iroha
 
 #endif  // IROHA_BLOCK_GENERATOR_HPP
