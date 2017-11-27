@@ -103,3 +103,10 @@ TEST(PbQueryFactoryTest, get_asset_info){
   auto query = QueryGenerator{}.generateGetAssetInfo();
   runQueryTest(query);
 }
+
+TEST(PbQueryFactoryTest, get_account_asset_transactions) {
+  auto query = QueryGenerator{}.generateGetAccountAssetTransactions(
+    0, "admin", 0, "alice", {"a", "b"},
+    iroha::model::Pager{iroha::hash256_t{}, 10});
+  runQueryTest(*query);
+}
