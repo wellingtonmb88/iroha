@@ -26,8 +26,8 @@
 #include "model/queries/get_asset_info.hpp"
 #include "model/queries/get_roles.hpp"
 #include "model/queries/get_signatories.hpp"
+#include "model/queries/get_account_asset_transactions.hpp"
 #include "model/queries/get_transactions.hpp"
-#include "model/queries/get_account_transactions.hpp"
 
 /**
  * File contains registration for all query subclasses
@@ -43,6 +43,7 @@ namespace iroha {
         query_handler.register_type(typeid(GetAccountAssets));
         query_handler.register_type(typeid(GetSignatories));
         query_handler.register_type(typeid(GetAccountTransactions));
+        query_handler.register_type(typeid(GetAccountAssetTransactions));
         query_handler.register_type(typeid(GetRoles));
         query_handler.register_type(typeid(GetAssetInfo));
         query_handler.register_type(typeid(GetRolePermissions));
