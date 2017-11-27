@@ -16,12 +16,24 @@
  */
 
 #include "model/converters/json_common.hpp"
+#include "model/queries/pager.hpp"
 
 using namespace rapidjson;
 
 namespace iroha {
   namespace model {
     namespace converters {
+      Value serializePager(const Pager& pager,
+                           Document::AllocatorType& allocator) {
+        Value document;
+        document.SetObject();
+
+        document.AddMember("tx_hash", pager.tx_hash.to_hexstring(), allocator);
+        document.AddMember("limit", pager.limit, allocator);
+
+        return document;
+      }
+
       Value serializeSignature(const Signature& signature,
                                Document::AllocatorType& allocator) {
         Value document;
