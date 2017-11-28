@@ -189,6 +189,7 @@ TEST(QuerySerializerTest, get_account_asset_transactions) {
   auto val = queryGenerator.generateGetAccountAssetTransactions(
     0, "admin", 0, "alice", {"a", "b"},
     iroha::model::Pager{iroha::hash256_t{}, 10});
+  ASSERT_TRUE(val.has_value());
   (*val)->signature = generateSignature(42);
   runQueryTest(*val);
 }
