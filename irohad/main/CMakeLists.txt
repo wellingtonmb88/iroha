@@ -32,7 +32,6 @@ target_link_libraries(raw_block_insertion
 
 add_library(application
     application.cpp
-    impl/ordering_init.cpp
     impl/consensus_init.cpp
     impl/block_loader_init.cpp
     )

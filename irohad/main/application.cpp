@@ -16,6 +16,7 @@
  */
 
 #include "main/application.hpp"
+#include "ordering/impl/ordering_service_transport_grpc.hpp"
 
 using namespace iroha;
 using namespace iroha::ametsuchi;
@@ -127,7 +128,8 @@ void Irohad::initValidators() {
 
 void Irohad::initOrderingGate() {
   ordering_gate =
-      ordering_init.initOrderingGate(wsv, max_proposal_size_, proposal_delay_);
+    ordering_init.initOrderingGate<ordering::OrderingGateTransportGrpc>(
+      wsv, max_proposal_size_, proposal_delay_);
   log_->info("[Init] => init ordering gate - [{}]",
              logger::logBool(ordering_gate));
 }

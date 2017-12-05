@@ -19,10 +19,9 @@
 #define IROHA_ORDERING_INIT_HPP
 
 #include "ametsuchi/peer_query.hpp"
+#include "network/ordering_service_transport.hpp"
 #include "ordering/impl/ordering_gate_impl.hpp"
 #include "ordering/impl/ordering_gate_transport_grpc.hpp"
-#include "ordering/impl/ordering_service_transport_grpc.hpp"
-
 #include "ordering/impl/ordering_service_impl.hpp"
 
 namespace iroha {
@@ -38,7 +37,11 @@ namespace iroha {
        * service)
        * @param network_address - address of ordering service
        */
-      auto createGate(std::shared_ptr<OrderingGateTransport>);
+      auto createGate(const std::shared_ptr<OrderingGateTransport> &transport) {
+        auto gate = std::make_shared<ordering::OrderingGateImpl>(transport);
+        transport->subscribe(gate);
+        return gate;
+      }
 
       /**
        * Init ordering service
@@ -48,29 +51,56 @@ namespace iroha {
        * @param loop - handler of async events
        */
       auto createService(
-          std::shared_ptr<ametsuchi::PeerQuery> wsv,
+          const std::shared_ptr<ametsuchi::PeerQuery> &wsv,
           size_t max_size,
           std::chrono::milliseconds delay_milliseconds,
-          std::shared_ptr<network::OrderingServiceTransport> transport);
+          const std::shared_ptr<network::OrderingServiceTransport> &transport) {
+        return std::make_shared<ordering::OrderingServiceImpl>(
+            wsv, max_size, delay_milliseconds.count(), transport);
+      }
 
      public:
       /**
        * Initialization of ordering gate(client) and ordering service (service)
+       * @tparam OrderingServiceTransportGrpcType - customizable in order to
+       * guarantee order of transactions in test. to reduce duplicate
+       * implementation, template class is used instead of using virtual class.
        * @param peers - endpoints of peers for connection
        * @param loop - handler of async events
        * @param max_size - limitation of proposal size
        * @param delay_milliseconds - delay before emitting proposal
        * @return effective realisation of OrderingGate
        */
+      template <class OrderingServiceTransportGrpcType =
+                    ordering::OrderingServiceTransportGrpc>
       std::shared_ptr<ordering::OrderingGateImpl> initOrderingGate(
-          std::shared_ptr<ametsuchi::PeerQuery> wsv,
+          const std::shared_ptr<ametsuchi::PeerQuery> &wsv,
           size_t max_size,
-          std::chrono::milliseconds delay_milliseconds);
+          std::chrono::milliseconds delay_milliseconds) {
+        const auto network_address = [&wsv]() -> const model::Peer {
+          const auto peers = wsv->getLedgerPeers();
+          BOOST_ASSERT_MSG(peers.has_value(), "Peers data in ledger broken");
+          return peers.value().front();
+        }();
+        ordering_gate_transport =
+            std::make_shared<iroha::ordering::OrderingGateTransportGrpc>(
+                network_address.address);
+
+        ordering_service_transport =
+            std::make_shared<OrderingServiceTransportGrpcType>();
+        ordering_service = createService(
+            wsv, max_size, delay_milliseconds, ordering_service_transport);
+        ordering_service_transport->subscribe(ordering_service);
+        ordering_gate = createGate(ordering_gate_transport);
+        return ordering_gate;
+      }
 
       std::shared_ptr<ordering::OrderingServiceImpl> ordering_service;
       std::shared_ptr<ordering::OrderingGateImpl> ordering_gate;
-      std::shared_ptr<ordering::OrderingGateTransportGrpc> ordering_gate_transport;
-      std::shared_ptr<ordering::OrderingServiceTransportGrpc> ordering_service_transport;
+      std::shared_ptr<ordering::OrderingGateTransportGrpc>
+          ordering_gate_transport;
+      std::shared_ptr<network::OrderingServiceTransport>
+          ordering_service_transport;
     };
   }  // namespace network
 }  // namespace iroha
