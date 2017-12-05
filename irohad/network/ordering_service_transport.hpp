@@ -51,7 +51,7 @@ namespace iroha {
        * needs to be notified
        */
       virtual void subscribe(
-          std::shared_ptr<OrderingServiceNotification> subscriber) = 0;
+          const std::shared_ptr<OrderingServiceNotification> &subscriber) = 0;
 
       /**
        * Publishes proposal over network

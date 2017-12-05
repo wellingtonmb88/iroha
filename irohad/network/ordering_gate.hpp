@@ -35,7 +35,7 @@ namespace iroha {
        * @param transaction
        */
       virtual void propagate_transaction(
-          std::shared_ptr<const model::Transaction> transaction) = 0;
+          const std::shared_ptr<const model::Transaction> &transaction) = 0;
 
       /**
        * Return observable of all proposals in the consensus

@@ -38,14 +38,14 @@ namespace iroha {
                              public network::OrderingGateNotification {
      public:
       explicit OrderingGateImpl(
-          std::shared_ptr<iroha::network::OrderingGateTransport> transport);
+          const std::shared_ptr<iroha::network::OrderingGateTransport> &transport);
 
       void propagate_transaction(
-          std::shared_ptr<const model::Transaction> transaction) override;
+          const std::shared_ptr<const model::Transaction> &transaction) override;
 
       rxcpp::observable<model::Proposal> on_proposal() override;
 
-      void onProposal(model::Proposal proposal) override;
+      void onProposal(const model::Proposal &proposal) override;
 
      private:
 

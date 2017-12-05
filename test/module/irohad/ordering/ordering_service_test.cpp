@@ -51,8 +51,8 @@ class MockOrderingServiceTransport : public network::OrderingServiceTransport {
     publishProposal(proposal, peers);
   };
 
-  void subscribe(std::shared_ptr<network::OrderingServiceNotification>
-                     subscriber) override {
+  void subscribe(const std::shared_ptr<network::OrderingServiceNotification>
+                     &subscriber) override {
     subscriber_ = subscriber;
   }
 

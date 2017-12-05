@@ -37,11 +37,12 @@ namespace iroha {
                               const proto::Proposal *request,
                               ::google::protobuf::Empty *response) override;
 
-      void propagate_transaction(
-          std::shared_ptr<const model::Transaction> transaction) override;
+      void propagate_transaction(const std::shared_ptr<const model::Transaction>
+                                     &transaction) override;
 
-      void subscribe(std::shared_ptr<iroha::network::OrderingGateNotification>
-                         subscriber) override;
+      void subscribe(
+          const std::shared_ptr<iroha::network::OrderingGateNotification>
+              &subscriber) override;
 
      private:
       std::weak_ptr<iroha::network::OrderingGateNotification> subscriber_;

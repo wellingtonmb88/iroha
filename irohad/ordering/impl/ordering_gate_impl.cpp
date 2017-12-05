@@ -21,11 +21,11 @@ namespace iroha {
   namespace ordering {
 
     OrderingGateImpl::OrderingGateImpl(
-        std::shared_ptr<iroha::network::OrderingGateTransport> transport)
+        const std::shared_ptr<iroha::network::OrderingGateTransport> &transport)
         : transport_(transport), log_(logger::log("OrderingGate")) {}
 
     void OrderingGateImpl::propagate_transaction(
-        std::shared_ptr<const model::Transaction> transaction) {
+        const std::shared_ptr<const model::Transaction> &transaction) {
       log_->info("propagate tx, tx_counter: " +
                  std::to_string(transaction->tx_counter) +
                  " account_id: " + transaction->creator_account_id);
@@ -33,11 +33,12 @@ namespace iroha {
       transport_->propagate_transaction(transaction);
     }
 
+    //TODO 05/12/17 motxx - rename on_proposal() to appropriate name
     rxcpp::observable<model::Proposal> OrderingGateImpl::on_proposal() {
       return proposals_.get_observable();
     }
 
-    void OrderingGateImpl::onProposal(model::Proposal proposal) {
+    void OrderingGateImpl::onProposal(const model::Proposal &proposal) {
       log_->info("Received new proposal");
       proposals_.get_subscriber().on_next(proposal);
     }

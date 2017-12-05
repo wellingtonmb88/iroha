@@ -36,8 +36,8 @@ namespace iroha {
      public:
       OrderingServiceTransportGrpc();
       void subscribe(
-          std::shared_ptr<iroha::network::OrderingServiceNotification>
-              subscriber) override;
+          const std::shared_ptr<iroha::network::OrderingServiceNotification>
+              &subscriber) override;
 
       void publishProposal(model::Proposal &&proposal,
                            const std::vector<std::string> &peers) override;

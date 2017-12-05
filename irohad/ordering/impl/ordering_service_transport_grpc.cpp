@@ -21,7 +21,7 @@ using namespace iroha::model;
 using namespace iroha::network;
 
 void OrderingServiceTransportGrpc::subscribe(
-    std::shared_ptr<OrderingServiceNotification> subscriber) {
+    const std::shared_ptr<OrderingServiceNotification> &subscriber) {
   subscriber_ = subscriber;
 }
 

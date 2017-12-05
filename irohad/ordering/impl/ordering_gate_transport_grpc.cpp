@@ -48,7 +48,7 @@ OrderingGateTransportGrpc::OrderingGateTransportGrpc(
       log_(logger::log("OrderingGate")) {}
 
 void OrderingGateTransportGrpc::propagate_transaction(
-    std::shared_ptr<const model::Transaction> transaction) {
+    const std::shared_ptr<const model::Transaction> &transaction) {
   log_->info("Propagate tx (on transport)");
   auto call = new AsyncClientCall;
 
@@ -59,7 +59,8 @@ void OrderingGateTransportGrpc::propagate_transaction(
 }
 
 void OrderingGateTransportGrpc::subscribe(
-    std::shared_ptr<iroha::network::OrderingGateNotification> subscriber) {
+    const std::shared_ptr<iroha::network::OrderingGateNotification>
+        &subscriber) {
   log_->info("Subscribe");
   subscriber_ = subscriber;
 }

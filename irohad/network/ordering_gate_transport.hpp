@@ -33,7 +33,7 @@ namespace iroha {
        * Callback on receiving proposal
        * @param proposal - proposal object itself
        */
-      virtual void onProposal(model::Proposal) = 0;
+      virtual void onProposal(const model::Proposal&) = 0;
 
       virtual ~OrderingGateNotification() = default;
     };
@@ -51,14 +51,14 @@ namespace iroha {
        * to be notified
        */
       virtual void subscribe(
-          std::shared_ptr<OrderingGateNotification> subscriber) = 0;
+          const std::shared_ptr<OrderingGateNotification> &subscriber) = 0;
 
       /**
        * Propagates transaction over network
        * @param transaction : transaction to be propagated
        */
       virtual void propagate_transaction(
-          std::shared_ptr<const model::Transaction> transaction) = 0;
+          const std::shared_ptr<const model::Transaction> &transaction) = 0;
 
       virtual ~OrderingGateTransport() = default;
     };
