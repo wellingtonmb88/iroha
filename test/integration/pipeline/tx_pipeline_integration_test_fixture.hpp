@@ -32,6 +32,29 @@ using namespace std::chrono_literals;
 using namespace iroha::model::generators;
 using iroha::model::Transaction;
 
+std::mutex send_tx_mtx;
+std::condition_variable send_tx_cv;
+bool send_tx_ready = false;
+
+class CustomOrderingServiceTransportGrpc final
+    : public iroha::ordering::OrderingServiceTransportGrpc {
+ public:
+  grpc::Status OrderingServiceTransportGrpc::onTransaction(
+      ::grpc::ServerContext *context,
+      const protocol::Transaction *request,
+      ::google::protobuf::Empty *response) override {
+    ASSERT_FALSE(subscriber_.expired()) << "No subscriber";
+    subscriber_.lock()->onTransaction(*factory_.deserialize(*request));
+    {
+      std::lock_guard<std::mutex> lk(send_tx_mtx);
+      send_tx_ready = true;
+    }
+    send_tx_cv.notify_one();
+
+    return ::grpc::Status::OK;
+  }
+};
+
 class TestIrohad : public Irohad {
  public:
   TestIrohad(const std::string &block_store_dir,
@@ -67,6 +90,14 @@ class TestIrohad : public Irohad {
 
   auto &getCryptoProvider() {
     return crypto_verifier;
+  }
+
+  void initOrderingGate() override final {
+    ordering_gate =
+        ordering_init.initOrderingGate<CustomOrderingServiceTransportGrpc>(
+            wsv, max_proposal_size_, proposal_delay_);
+    log_->info("[Init] => init ordering gate - [{}]",
+               logger::logBool(ordering_gate));
   }
 
   void run() override {
@@ -115,11 +146,13 @@ class TxPipelineIntegrationTestFixture
 
     // send transactions to torii
     for (const auto &tx : transactions) {
+      std::unique_lock<std::mutex> lk(send_tx_mtx);
       auto pb_tx =
           iroha::model::converters::PbTransactionFactory().serialize(tx);
 
       google::protobuf::Empty response;
       irohad->getCommandService()->ToriiAsync(pb_tx, response);
+      send_tx_cv.wait(lk, [this] { return send_tx_ready; });
     }
   }
 
