@@ -22,9 +22,9 @@
 #include "ametsuchi/block_query.hpp"
 #include "ametsuchi/impl/flat_file/flat_file.hpp"
 
-#include "model/converters/json_block_factory.hpp"
-
 #include <boost/optional.hpp>
+#include <utility>
+#include "model/converters/json_block_factory.hpp"
 
 namespace iroha {
   namespace ametsuchi {
@@ -33,6 +33,9 @@ namespace iroha {
      */
     class RedisBlockQuery : public BlockQuery {
      public:
+      using IndexOfTransaction = std::pair<iroha::model::Block::BlockHeightType,
+                                           iroha::model::Block::TxIndexType>;
+
       RedisBlockQuery(cpp_redis::redis_client &client, FlatFile &file_store);
 
       rxcpp::observable<model::Transaction> getAccountTransactions(
@@ -46,6 +49,9 @@ namespace iroha {
 
       boost::optional<model::Transaction> getTxByHashSync(
           const std::string &hash) override;
+
+      boost::optional<model::Transaction> getTxByIndexOfTx(
+          const std::string &hash);
 
       rxcpp::observable<model::Block> getBlocks(uint32_t height,
                                                 uint32_t count) override;
@@ -69,6 +75,21 @@ namespace iroha {
        * @return block id or boost::none
        */
       boost::optional<iroha::model::Block::BlockHeightType> getBlockId(
+          const std::string &hash);
+
+      /**
+       * Converts string to pair of block id and tx index.
+       * @param index_of_tx - string expression of IndexOfTransaction
+       * @return IndexOfTransaction - pair of block id and tx index
+       */
+      boost::optional<IndexOfTransaction> toIndexOfTx(const std::string &str);
+
+      /**
+       * Returns pair of block id and tx index from a given hash
+       * @param hash - hash of transaction
+       * @return IndexOfTransaction - pair of block id and tx index
+       */
+      boost::optional<IndexOfTransaction> getIndexOfTxByHash(
           const std::string &hash);
 
       /**

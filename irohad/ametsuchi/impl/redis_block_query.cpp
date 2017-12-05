@@ -16,6 +16,11 @@
  */
 
 #include "ametsuchi/impl/redis_block_query.hpp"
+#include <boost/spirit/include/qi.hpp>
+#include <map>
+#include <model/commands/add_asset_quantity.hpp>
+#include <model/commands/transfer_asset.hpp>
+#include <set>
 #include "crypto/hash.hpp"
 
 namespace iroha {
@@ -202,6 +207,44 @@ namespace iroha {
               ? boost::none
               : boost::optional<model::Transaction>(*it);
         };
+    }
+
+    boost::optional<model::Transaction> RedisBlockQuery::getTxByIndexOfTx(
+        const std::string &hash) {
+      // TODO 01/12/17 motxx - Typed tx hash (not specified size like 256, 512)
+      // should be somewhere.
+      return getIndexOfTxByHash(hash) | [this, &hash](const auto &index) {
+        return block_store_.get(index.first) |
+            [](const auto &bytes) {
+              return model::converters::stringToJson(bytesToString(bytes));
+            }
+        | [this](const auto &json) { return serializer_.deserialize(json); } |
+            [&hash, tx_index = index.second ](const auto &block)
+                ->boost::optional<model::Transaction> {
+          if (tx_index >= block.transactions.size()) {
+            return boost::none;
+          }
+          const auto tx = block.transactions[tx_index];
+          // verify hash and confirm Redis data is valid.
+          return iroha::hash(tx).to_string() == hash ? boost::make_optional(tx)
+                                                     : boost::none;
+        };
+      };
+    }
+
+    boost::optional<RedisBlockQuery::IndexOfTransaction>
+    RedisBlockQuery::toIndexOfTx(const std::string &str) {
+      namespace qi = boost::spirit::qi;
+      IndexOfTransaction ret;
+      const qi::rule<decltype(str.begin())> rule =
+          // uint_ detects overflow and fails based on the type of template T.
+          qi::uint_<decltype(ret.first)>[([&ret](auto x) { ret.first = x; })]
+          >> ":" >> qi::uint_<decltype(ret.second)>[(
+                        [&ret](auto x) { ret.second = x; })];
+      auto iter = str.begin();
+      const auto success_parse = qi::parse(iter, str.end(), rule);
+      return (success_parse and iter == str.end()) ? boost::make_optional(ret)
+                                                   : boost::none;
     }
 
   }  // namespace ametsuchi
