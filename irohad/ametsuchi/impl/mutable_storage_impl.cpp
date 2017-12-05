@@ -16,7 +16,8 @@
  */
 
 #include "ametsuchi/impl/mutable_storage_impl.hpp"
-#include <model/commands/transfer_asset.hpp>
+#include "model/commands/add_asset_quantity.hpp"
+#include "model/commands/transfer_asset.hpp"
 
 #include "ametsuchi/impl/postgres_wsv_command.hpp"
 #include "ametsuchi/impl/postgres_wsv_query.hpp"
@@ -49,8 +50,8 @@ namespace iroha {
         auto account_id = tx.creator_account_id;
         auto hash = iroha::hash(tx).to_string();
 
-        // tx hash -> block where hash is stored
-        index_->set(hash, std::to_string(height));
+        // tx hash -> block:tx_index where hash is stored
+        index_->set(hash, std::to_string(height) + ":" + std::to_string(i));
 
         // to make index account_id -> list of blocks where his txs exist
         index_->sadd(account_id, {std::to_string(height)});
@@ -60,33 +61,50 @@ namespace iroha {
         index_->rpush(account_id + ":" + std::to_string(height),
                       {std::to_string(i)});
 
-        // collect all assets belonging to user "account_id"
-        std::set<std::string> users_assets_in_tx;
-        std::for_each(tx.commands.begin(),
-                      tx.commands.end(),
-                      [&account_id, &users_assets_in_tx](auto command) {
-                        if (instanceof <model::TransferAsset>(*command)) {
-                          auto transferAsset =
-                              (model::TransferAsset *)command.get();
-                          if (transferAsset->dest_account_id == account_id
-                              or transferAsset->src_account_id == account_id) {
-                            users_assets_in_tx.insert(transferAsset->asset_id);
-                          }
-                        }
-                      });
+        // collect all assets belonging to users
+        std::map<std::string, std::set<std::string>> users_assets_in_tx;
+        std::for_each(
+            tx.commands.begin(),
+            tx.commands.end(),
+            [&users_assets_in_tx](auto command) {
+              if (const auto add =
+                      std::dynamic_pointer_cast<model::AddAssetQuantity>(
+                          command)) {
+                users_assets_in_tx[add->account_id].insert(add->asset_id);
+              }
+              if (const auto transfer =
+                      std::dynamic_pointer_cast<model::TransferAsset>(
+                          command)) {
+                users_assets_in_tx[transfer->src_account_id].insert(
+                    transfer->asset_id);
+                users_assets_in_tx[transfer->dest_account_id].insert(
+                    transfer->asset_id);
+              }
+            });
 
         // to make account_id:height:asset_id -> list of tx indexes (where tx
         // with certain asset is placed in the block )
-        for (const auto &asset_id : users_assets_in_tx) {
-          // create key to put user's txs with given asset_id
-          std::string account_assets_key;
-          account_assets_key.append(account_id);
-          account_assets_key.append(":");
-          account_assets_key.append(std::to_string(height));
-          account_assets_key.append(":");
-          account_assets_key.append(asset_id);
-          index_->rpush(account_assets_key, {std::to_string(i)});
-        }
+        std::for_each(users_assets_in_tx.begin(),
+                      users_assets_in_tx.end(),
+                      [this, height, tx_index = i](const auto &user_assets) {
+                        const auto &user = user_assets.first;
+                        const auto &assets = user_assets.second;
+                        // create key to put user's txs with given asset_id
+                        std::string prefix;
+                        prefix.append(user);
+                        prefix.append(":");
+                        prefix.append(std::to_string(height));
+                        prefix.append(":");
+                        std::for_each(
+                            assets.begin(),
+                            assets.end(),
+                            [that = this, &tx_index](const auto &asset_id) {
+                              auto key = prefix;
+                              key.append(asset_id);
+                              that->index_->rpush(key,
+                                                  {std::to_string(tx_index)});
+                            });
+                      });
       }
     }
 
