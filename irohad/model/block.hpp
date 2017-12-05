@@ -76,6 +76,8 @@ namespace iroha {
        */
       uint16_t txs_number{};
 
+      using TxIndexType = decltype(txs_number);
+
       /**
        * Root of merkle tree based on the block and all previous blocks
        * in the ledger
