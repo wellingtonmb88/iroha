@@ -1,22 +1,28 @@
-Thanks for the pull request!
-Pull requests should have these details:
+### Requirements
 
-## What is this pull request?
-Describe simply what this pull request is about.
-   
-## Why do you implement it? Why do we need this pull request?
-Describe features, what this pull request resolves, and reasons for this pull request.
-  
-## How to use the features provided in the pull request?
-Do you provide tests, or use case examples?
-Describe how to use features in your pull request.
+* Filling out the template is required. Any pull request that does not include enough information to be reviewed in a timely manner may be closed at the maintainers' discretion.
+* All new code has to be tested.
 
-## Details/Features
-List of features / major commits
-- Add ** to **
-- Remove ** from **
-...
+### Description of the Change
 
-## Additional dependencies (optional)
+<!-- We must be able to understand the design of your change from this description. If we can't get a good idea of what the code will be doing from the description here, the pull request may be closed at the maintainers' discretion. Keep in mind that the maintainer reviewing this PR may not be familiar with or have worked with the code here recently, so please walk us through the concepts. -->
 
-## P.S. (optional)
+### Alternate Designs
+
+<!-- Explain what other alternates were considered and why the proposed version was selected -->
+
+### Why Should This Be In Iroha?
+
+<!-- Explain why this functionality should be in hyperledger/iroha -->
+
+### Benefits
+
+<!-- What benefits will be realized by the code change? -->
+
+### Possible Drawbacks
+
+<!-- What are the possible side-effects or negative impacts of the code change? -->
+
+### Applicable Issues
+
+<!-- Enter any applicable Issues here -->
