@@ -79,7 +79,7 @@ namespace iroha {
               *PbTransactionFactory::deserialize(pb_tx));
         }
 
-        block.hash = iroha::hash(pb_block);
+        block.hash = iroha::model::converters::hash(pb_block);
 
         return block;
       }
