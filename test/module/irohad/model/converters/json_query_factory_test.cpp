@@ -18,6 +18,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include "crypto/hash.hpp"
+#include "model/converters/json_common.hpp"
 #include "model/converters/json_query_factory.hpp"
 #include "model/generators/query_generator.hpp"
 #include "model/generators/signature_generator.hpp"
@@ -185,6 +186,37 @@ TEST(QuerySerializerTest, get_role_permissions){
   auto val = queryGenerator.generateGetRolePermissions();
   val->signature = generateSignature(42);
   runQueryTest(val);
+}
+
+/**
+ * @given Random pager value
+ * @when serialize it then deserialize it
+ * @then Validate random pager value is equal to the expected value.
+ */
+struct TestPagerModel {
+  Pager pager{};
+};
+
+TEST(QuerySerializerTest, SerializePager) {
+  JsonQueryFactory queryFactory;
+  decltype(std::declval<Pager>().tx_hash) tx_hash;
+  tx_hash.fill(1);
+  const auto pager = Pager{tx_hash, 1};
+
+  rapidjson::Document json_doc;
+  auto &allocator = json_doc.GetAllocator();
+  json_doc.SetObject();
+  rapidjson::Value json_pager;
+  json_pager.SetObject();
+  json_pager.CopyFrom(serializePager(pager, allocator), allocator);
+  json_doc.AddMember("pager", json_pager, allocator);
+
+  std::cout << jsonToString(json_doc) << "\n";
+  auto des = makeFieldDeserializer(json_doc);
+  const auto des_pager = (nonstd::make_optional(TestPagerModel{})
+                          | des.Object(&TestPagerModel::pager, "pager"))
+                             ->pager;
+  ASSERT_EQ(pager, des_pager);
 }
 
 /**
