@@ -232,7 +232,7 @@ namespace iroha {
         auto account_asset_value = account_asset.value();
 
         auto new_balance =
-            account_asset_value.balance + add_asset_quantity.amount;
+            account_asset_value.balance + add_asset_quantity.amount + add_asset_quantity.amount;
         if (not new_balance.has_value()) {
           return false;
         }
