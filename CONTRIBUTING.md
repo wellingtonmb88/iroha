@@ -66,7 +66,7 @@ Enhancements are tracked as [GitHub Issues](https://guides.github.com/features/i
 
 A *question* is any discussion that is typically neigher a bug, nor feature requests, nor improvements - "How do I do X?".
 
-Questions are tracked as [Github Issues](https://guides.github.com/features/issues/) or via private messages in  [your favourite messenger](#contace-developers).
+Questions are tracked as [Github Issues](https://guides.github.com/features/issues/) or via private messages in [your favourite messenger](#contact-developers).
 
 To submit new question in GitHub Issues, it must include these details:
 
@@ -89,7 +89,7 @@ Read our [C++ Style Guide](#c++-style-guide) and start with beginner-friendly is
 
 - **Write tests** for new code.
 
-- Every pull request should be reviewed and **get at least two approves**.
+- Every pull request should be reviewed and **get at least two approvals**.
 
 - Do not include issue numbers in the PR title or commit messages.
 
@@ -100,6 +100,8 @@ Read our [C++ Style Guide](#c++-style-guide) and start with beginner-friendly is
     $ git fetch
     $ git rebase -i <base-branch>
     ```
+
+    [Step-by-step guide](https://soramitsu.atlassian.net/wiki/spaces/IS/pages/11173889/Rebase+and+merge+guide).
 
 - Follow the [C++ Style Guide](#C++-style-guide).
 
@@ -134,8 +136,8 @@ Read our [C++ Style Guide](#c++-style-guide) and start with beginner-friendly is
 - Use [clang-format](http://clang.llvm.org/docs/ClangFormat.html) for code formatting. 
 - Follow [CppCoreGuidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines) and [Cpp Best Practices](https://lefticus.gitbooks.io/cpp-best-practices).
 - Avoid platform-dependent code.
-- Use C++14.
-- Use camelCase.
+- Use [C++14](https://en.wikipedia.org/wiki/C%2B%2B14).
+- Use [camelCase](https://en.wikipedia.org/wiki/Camel_case).
 
 
 
@@ -183,10 +185,14 @@ Labels help us to track and manage issues and pull requests.
 
 Developers are available at:
 
-- RocketChat - https://chat.hyperledger.org/channel/iroha
-- Use mailing list to discuss hyperledger-iroha@lists.hyperledger.org
-- Gitter - https://gitter.im/hyperledger-iroha/Lobby
-- Telegram - https://t.me/joinchat/Al-9jkCZ6eePL9JMQtoOJw
+| Service      | Link                                     |
+| ------------ | ---------------------------------------- |
+| RocketChat   | https://chat.hyperledger.org/channel/iroha |
+| Mailing List | [hyperledger-iroha@lists.hyperledger.org](mailto:hyperledger-iroha@lists.hyperledger.org) |
+| Gitter       | https://gitter.im/hyperledger-iroha/Lobby |
+| Telegram     | https://t.me/joinchat/Al-9jkCZ6eePL9JMQtoOJw |
+
+
 
 ---
 
