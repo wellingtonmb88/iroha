@@ -156,13 +156,14 @@ Labels help us to track and manage issues and pull requests.
 
 | Label Name              | Description                              |
 | :---------------------- | ---------------------------------------- |
-| `enhancement`           | Any improvements in existing code, fresh ideas. |
-| `bug`                   | Bugs or reports that are very likely to be bugs. |
+| `enhancement:code`      | Any improvements in **existing** code.   |
+| `enhancement:idea`      | Fresh ideas to enhance existing architecture, design.   |
+| `bug:needs-reproduction`| Bugs or reports that are very likely to be bugs. |
+| `bug:confirmed`         | Confirmed bug by maintainers. |
 | `question`              | Questions more than bug reports or feature requests - "How do I do X" |
 | `feature`               | Feature requests.                        |
 | `good-first-issue`      | Good starting point to begin contributing. |
 | `help-wanted`           | Maintainers ask for help to work on this issue. |
-| `needs-reproduction`    | Issue is likely a bug, but needs to be reproduced and confirmed. |
 | `accepted`              | Pull request is accepted and can be merged. |
 | `candidate-for-closing` | Outdated Issue/Pull Request and is candidate for closing. |
 | `challeging-task`       | Small but hard task.                     |
@@ -180,7 +181,6 @@ Labels help us to track and manage issues and pull requests.
 | `status:wontfix`        | Core team has decided not to fix these issue for now. |
 
 
-
 ### Contact Developers
 
 Developers are available at:
@@ -196,8 +196,4 @@ Developers are available at:
 
 ---
 
-Thank you for reading whole document! 
-
-Your code phrase is "I promise to follow Contributing Guidelines."* without quotes.
-
-*Note: this code phrase is used by GitIssueBot to ensure that first time contributors at least scrolled down to find it.
+Thank you for reading the document! 
